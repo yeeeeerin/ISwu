@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.AppCompat.Light">
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -20,6 +20,7 @@
             android:name=".DailyMoneySet"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".UpdateSpend"></activity>
+        <activity android:name=".DataList"></activity>
     </application>
 
 </manifest>

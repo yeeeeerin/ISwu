@@ -1,111 +1,87 @@
 package com.example.jihyun.oingoing;
 
-import android.app.TabActivity;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.media.Image;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.widget.DrawerLayout;
+import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutCompat;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.SubMenu;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TabHost;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+/**
+ * Created by jihyun on 2017-05-04.
+ */
 
-    TabHost tabHost;
-    final static String LOG_TAG = "myLogs";
+public class DataList extends AppCompatActivity {
+    private DataDetailsAdapter dataDetailsAdapter;
     private static int id = 1;
-    private FloatingActionButton fabAddPerson;
-    private Realm myRealm;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
-    private DataDetailsAdapter dataDetailsAdapter;
+    final static String LOG_TAG = "myLogs";
+    private Realm myRealm;
+    private static DataList instance;
     private AlertDialog.Builder subDialog;
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.e(LOG_TAG, "MainActivity.OnCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        myRealm = Realm.getInstance(MainActivity.this);
+        setContentView(R.layout.content_main);
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
-        dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
-        getAllWidgets();
-        bindWidgetsWithEvents();
-
-        tabHost=(TabHost)findViewById(R.id.tabHost);
-
-        tabHost.setup();
-        tabHost.addTab(tabHost.newTabSpec("").setContent(R.id.tabMonth).setIndicator("월별"));
-        tabHost.addTab(tabHost.newTabSpec("").setContent(R.id.tabWeek).setIndicator("주별"));
-        tabHost.addTab(tabHost.newTabSpec("").setContent(R.id.tabDay).setIndicator("일별"));
-
-        tabHost.setCurrentTab(0);
-
-        ImageView addbtn=(ImageView) findViewById(R.id.addBtn);
-        addbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),DailyMoneySet.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getApplicationContext().startActivity(intent);
-            }
-        });
-
-        ImageView viewList=(ImageView) findViewById(R.id.viewList);
-        viewList.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),DataList.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getApplicationContext().startActivity(intent);
-            }
-        });
+        myRealm = Realm.getInstance(DataList.this);
+        instance=this;
+        setPersonDetailsAdapter();
+        getAllUsers();
     }
 
-    private void getAllWidgets() {
-        Log.e(LOG_TAG, "MainActivity.getAllWidgets");
-        fabAddPerson = (FloatingActionButton) findViewById(R.id.fab);
-        lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
+    public static DataList getInstance() {
+        Log.e(LOG_TAG, "DataList.getInstance");
+        return instance;
     }
-    private void bindWidgetsWithEvents() {
-        Log.e(LOG_TAG, "MainActivity.bindWidgetsWithEvents");
-        fabAddPerson.setOnClickListener(this);
-
+    private void setPersonDetailsAdapter() {
+        Log.e(LOG_TAG, "DataList.setPersonDetailsAdapter");
+        dataDetailsAdapter = new DataDetailsAdapter(DataList.this, dataDetailsModelArrayList);
+        lvPersonNameList.setAdapter(dataDetailsAdapter);
     }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.fab:
-                addOrUpdatePersonDetailsDialog(null,-1);
-                break;
+    private void getAllUsers() {
+        Log.e(LOG_TAG, "DataList.getAllUsers");
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
+        myRealm.beginTransaction();
+        for (int i = 0; i < results.size(); i++) {
+            dataDetailsModelArrayList.add(results.get(i));
         }
+        if(results.size()>0)
+            id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
+        myRealm.commitTransaction();
+        dataDetailsAdapter.notifyDataSetChanged();
     }
-
+    public void deleteData(int personId, int position) {
+        Log.e(LOG_TAG, "DataList.deletePerson");
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).equalTo("id", personId).findAll();
+        myRealm.beginTransaction();
+        results.remove(0);
+        myRealm.commitTransaction();
+        dataDetailsModelArrayList.remove(position);
+        dataDetailsAdapter.notifyDataSetChanged();
+    }
+    public DataDetailsModel searchData(int personId) {
+        Log.e(LOG_TAG, "DataList.searchPerson");
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).equalTo("id", personId).findAll();
+        myRealm.beginTransaction();
+        myRealm.commitTransaction();
+        return results.get(0);
+    }
     public void addOrUpdatePersonDetailsDialog(final DataDetailsModel model,final int position) {
 //subdialog
-        Log.e(LOG_TAG, "MainActivity.addOrUpdatePersonDetailsDialog");
-        subDialog = new AlertDialog.Builder(MainActivity.this)
+        Log.e(LOG_TAG, "DataList.addOrUpdatePersonDetailsDialog");
+        subDialog = new AlertDialog.Builder(DataList.this)
                 .setMessage("모두 입력해주세요")
                 .setCancelable(false)
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -115,9 +91,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
 //maindialog
-        LayoutInflater li = LayoutInflater.from(MainActivity.this);
+        LayoutInflater li = LayoutInflater.from(DataList.this);
         View promptsView = li.inflate(R.layout.income_dialog, null);
-        AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);
+        AlertDialog.Builder mainDialog = new AlertDialog.Builder(DataList.this);
         mainDialog.setView(promptsView);
         final EditText etAddPersonName = (EditText) promptsView.findViewById(R.id.setCategory);
         final EditText etAddPersonAge = (EditText) promptsView.findViewById(R.id.setIncome);
@@ -155,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
     private void addDataToRealm(DataDetailsModel model) {
-        Log.e(LOG_TAG, "MainActivity.addDataToRealm");
+        Log.e(LOG_TAG, "DataList.addDataToRealm");
         myRealm.beginTransaction();
         DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
         dataDetailsModel.setId(id);
@@ -168,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void updatePersonDetails(DataDetailsModel model,int position,int personID) {
-        Log.e(LOG_TAG, "MainActivity.updatePersonDetails");
+        Log.e(LOG_TAG, "DataList.updatePersonDetails");
         DataDetailsModel editPersonDetails = myRealm.where(DataDetailsModel.class).equalTo("id", personID).findFirst();
         myRealm.beginTransaction();
         editPersonDetails.setName(model.getName());
@@ -177,11 +153,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsModelArrayList.set(position, editPersonDetails);
         dataDetailsAdapter.notifyDataSetChanged();
     }
-
-
+    protected void onDestroy() {
+        Log.e(LOG_TAG, "DataList.onDestroy");
+        super.onDestroy();
+        dataDetailsModelArrayList.clear();
+        myRealm.close();
+    }
 }
-
-
-
-
-
