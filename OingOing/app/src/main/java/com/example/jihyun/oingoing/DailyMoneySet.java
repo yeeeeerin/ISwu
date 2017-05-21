@@ -1,56 +1,74 @@
 package com.example.jihyun.oingoing;
 
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * Created by jihyun on 2017-04-30.
  */
 
-public class DailyMoneySet extends AppCompatActivity {
+public class DailyMoneySet extends AppCompatActivity implements View.OnClickListener{
 
-    private Spinner spinnerType;
-    ArrayList<String> items;
-    private ArrayAdapter<String> adapter;
-
+    private DatePickerDialog startDatePickerDialog;
+    private DatePickerDialog endDatePickerDialog;
+    private SimpleDateFormat dateFormatter;
+    private EditText startDate, endDate, setMoney;
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dailymoneyset);
+        dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+        startDate = (EditText) findViewById(R.id.startdate);
+        endDate = (EditText) findViewById(R.id.enddate);
+        setMoney = (EditText) findViewById(R.id.setMoney);
+        startDate.setInputType(InputType.TYPE_NULL);
+        startDate.requestFocus();
+        endDate.setInputType(InputType.TYPE_NULL);
+        startDate.setOnClickListener(this);
+        endDate.setOnClickListener(this);
+        Calendar newCalendar = Calendar.getInstance();
+        startDatePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
 
-        items = new ArrayList<String>();
-        items.add("월별");
-        items.add("주별");
-        items.add("일별");
-        items.add("선택");
-
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
-            public View getView(int position, View convertView, ViewGroup parent) {
-                View v = super.getView(position, convertView, parent);
-                if (position == getCount()) {
-                    ((TextView) v.findViewById(android.R.id.text1)).setText("");
-                    ((TextView) v.findViewById(android.R.id.text1)).setHint(getItem(getCount()));
-                }
-                return v;
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                Calendar newDate = Calendar.getInstance();
+                newDate.set(year, monthOfYear, dayOfMonth);
+                startDate.setText(dateFormatter.format(newDate.getTime()));
             }
 
-            public int getCount() {
-                return super.getCount() - 1;
+        },newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
+
+        endDatePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                Calendar newDate = Calendar.getInstance();
+                newDate.set(year, monthOfYear, dayOfMonth);
+                endDate.setText(dateFormatter.format(newDate.getTime()));
             }
-        };
-        spinnerType = (Spinner) findViewById(R.id.spinnerType);
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerType.setAdapter(adapter);
-        spinnerType.setSelection(adapter.getCount());
-
+        },newCalendar.get(Calendar.YEAR), newCalendar.get(Calendar.MONTH), newCalendar.get(Calendar.DAY_OF_MONTH));
     }
 
+
+    @Override
+    public void onClick(View view) {
+        if(view == startDate) {
+            startDatePickerDialog.show();
+        } else if(view == endDate) {
+            endDatePickerDialog.show();
+        }
+    }
 }

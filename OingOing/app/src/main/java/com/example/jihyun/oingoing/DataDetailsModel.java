@@ -11,6 +11,7 @@ public class DataDetailsModel extends RealmObject {
 
     @PrimaryKey
     private int id;
+
     private String name;
     private int price;
 

@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.e(LOG_TAG, "MainActivity.OnCreate");
+        Log.d(LOG_TAG, "MainActivity.OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         myRealm = Realm.getInstance(MainActivity.this);
@@ -119,11 +119,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         View promptsView = li.inflate(R.layout.income_dialog, null);
         AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);
         mainDialog.setView(promptsView);
-        final EditText etAddPersonName = (EditText) promptsView.findViewById(R.id.setCategory);
-        final EditText etAddPersonAge = (EditText) promptsView.findViewById(R.id.setIncome);
+        final EditText etAddCategory = (EditText) promptsView.findViewById(R.id.setCategory);
+        final EditText etAddIncome = (EditText) promptsView.findViewById(R.id.setIncome);
         if (model != null) {
-            etAddPersonName.setText(model.getName());
-            etAddPersonAge.setText(String.valueOf(model.getPrice()));
+            etAddCategory.setText(model.getName());
+            etAddIncome.setText(String.valueOf(model.getPrice()));
         }
         mainDialog.setCancelable(false)
                 .setPositiveButton("Ok", null)
@@ -139,11 +139,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!Utility.isBlankField(etAddPersonName) && !Utility.isBlankField(etAddPersonAge)) {
+                if (!Utility.isBlankField(etAddCategory) && !Utility.isBlankField(etAddIncome)) {
                     DataDetailsModel dataDetailsModel = new DataDetailsModel();
-                    dataDetailsModel.setName(etAddPersonName.getText().toString());
-                    dataDetailsModel.setPrice(Integer.parseInt(etAddPersonAge.getText().toString()));
-                    if (model == null)
+                    dataDetailsModel.setName(etAddCategory.getText().toString());
+                    dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
+                    if (model == null)  //이부분 이상이상
                         addDataToRealm(dataDetailsModel);
                     else
                         updatePersonDetails(dataDetailsModel, position, model.getId());
@@ -177,11 +177,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsModelArrayList.set(position, editPersonDetails);
         dataDetailsAdapter.notifyDataSetChanged();
     }
-
-
+    // db삭제
+    protected void onDestroy() {
+        Log.e(LOG_TAG, "MainActivity.onDestroy");
+        super.onDestroy();
+        dataDetailsModelArrayList.clear();
+        myRealm.close();
+    }
 }
-
-
-
-
-
