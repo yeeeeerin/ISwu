@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(LOG_TAG, "MainActivity.OnCreate");
@@ -54,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
         getAllWidgets();
         bindWidgetsWithEvents();
-
+        getAllUsers();
         tabHost=(TabHost)findViewById(R.id.tabHost);
 
         tabHost.setup();
@@ -241,11 +243,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsModelArrayList.set(position, editPersonDetails);
         dataDetailsAdapter.notifyDataSetChanged();
     }
-    // db삭제
-    protected void onDestroy() {
-        Log.e(LOG_TAG, "MainActivity.onDestroy");
-        super.onDestroy();
-        dataDetailsModelArrayList.clear();
-        myRealm.close();
+    private void getAllUsers() {
+        Log.e(LOG_TAG, "MainActivity.getAllUsers");
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
+        myRealm.beginTransaction();
+        for (int i = 0; i < results.size(); i++) {
+            dataDetailsModelArrayList.add(results.get(i));
+        }
+        if(results.size()>0)
+            id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
+        myRealm.commitTransaction();
+        dataDetailsAdapter.notifyDataSetChanged();
     }
+    // db삭제
+
 }
