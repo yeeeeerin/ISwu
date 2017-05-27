@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TabHost;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -34,7 +35,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     TabHost tabHost;
     final static String LOG_TAG = "myLogs";
     private static int id = 1;
-    private FloatingActionButton fabAddPerson;
+    //private FloatingActionButton fabAddPerson;
+    FloatingActionButton fab1, fab2, fab3, fab4;
+
     private Realm myRealm;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
@@ -80,26 +83,87 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getApplicationContext().startActivity(intent);
             }
         });
+//추가
+        fab1 = (FloatingActionButton)findViewById(R.id.fab_1);
+        fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
+        fab4 = (FloatingActionButton)findViewById(R.id.fab_4);
+        fab3 = (FloatingActionButton)findViewById(R.id.fab_3);
+
+        fab3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ToggleFab();
+            }
+        });
+
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addOrUpdatePersonDetailsDialog(null,-1);
+            }
+        });
+        fab1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getApplicationContext(), UpdateSpend.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(intent);
+            }
+        });
+    }
+
+    private void ToggleFab() {
+        // 버튼들이 보여지고있는 상태인 경우 숨겨줍니다.
+        if(fab1.getVisibility() == View.VISIBLE) {
+            fab1.hide();
+            fab2.hide();
+            fab4.hide();
+            fab1.animate().translationY(0);
+            fab2.animate().translationY(0);
+            fab4.animate().translationY(0);
+        }
+        // 버튼들이 숨겨져있는 상태인 경우 위로 올라오면서 보여줍니다.
+        else {
+            // 중심이 되는 버튼의 높이 + 마진 만큼 거리를 계산합니다.
+            int dy = fab3.getHeight() + 20;
+            fab1.show();
+            fab2.show();
+            fab4.show();
+            // 계산된 거리만큼 이동하는 애니메이션을 입력합니다.
+            fab4.animate().translationY(-dy*3);
+            fab1.animate().translationY(-dy*2);
+            fab2.animate().translationY(-dy);
+        }
     }
 
     private void getAllWidgets() {
         Log.e(LOG_TAG, "MainActivity.getAllWidgets");
-        fabAddPerson = (FloatingActionButton) findViewById(R.id.fab);
+        //fabAddPerson = (FloatingActionButton) findViewById(R.id.fab);
+        fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
     }
     private void bindWidgetsWithEvents() {
         Log.e(LOG_TAG, "MainActivity.bindWidgetsWithEvents");
-        fabAddPerson.setOnClickListener(this);
+        //fabAddPerson.setOnClickListener(this);
+        fab2.setOnClickListener(this);
 
     }
 
+   //수정
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.fab:
-                addOrUpdatePersonDetailsDialog(null,-1);
-                break;
-        }
+//        switch (v.getId()) {
+//            case R.id.fab_2:
+//                addOrUpdatePersonDetailsDialog(null,-1);
+//                break;
+//            case R.id.fab_1:
+//                Toast.makeText(MainActivity.this, "영수증인식", Toast.LENGTH_SHORT).show();
+//                //Intent intent = new Intent(getApplicationContext(), UpdateSpend.class);
+//                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                //getApplicationContext().startActivity(intent);
+//                break;
+//
+ //       }
     }
 
     public void addOrUpdatePersonDetailsDialog(final DataDetailsModel model,final int position) {

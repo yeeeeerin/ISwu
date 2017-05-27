@@ -139,13 +139,48 @@
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="right|bottom"
-            android:layout_margin="@dimen/activity_vertical_margin"
-            android:src="@android:drawable/ic_menu_edit" />
+
+//추가
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_menu_my_calendar"/>
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_menu_camera"/>
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_menu_edit"/>
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/fab_3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:layout_alignParentBottom="true"
+                android:layout_alignParentRight="true"
+                android:src="@android:drawable/ic_menu_add"/>
+        </RelativeLayout>
 
     </android.support.design.widget.CoordinatorLayout>
 
