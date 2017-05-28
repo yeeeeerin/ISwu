@@ -303,6 +303,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     photoURI = data.getData(); // 앨범 이미지의 경로
 
 
+
                 case REQUEST_IMAGE_CAPTURE:
                     cropImage();
 
@@ -312,7 +313,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     final Bundle extras = data.getExtras();
 
                     if (extras != null) {
-                        Bitmap photo = BitmapFactory.decodeFile(photoURI.getPath());
+                        Bitmap photo = BitmapFactory.decodeFile(albumURI.getPath());
                         mPhotoImageView.setImageBitmap(photo);
                     }
 
