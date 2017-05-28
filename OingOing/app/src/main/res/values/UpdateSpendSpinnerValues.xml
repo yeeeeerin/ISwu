@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 배열이름은 USSpinner -->
+    <string-array name="USSpinner">
+        <item>교통비</item>
+        <item>식비</item>
+        <item>문화생활</item>
+        <item>쇼핑</item>
+        <item>기타</item>
+        <item>선택</item>
+    </string-array>
+
+</resources>

@@ -148,30 +148,37 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
         //스피너 처리
         category = (Spinner) findViewById(R.id.spinner);
 
-        items = new ArrayList<String>();
-                items.add("교통비");
-                items.add("식비");
-                items.add("문화생활");
-                items.add("선택");
+        adapter = ArrayAdapter.createFromResource(this,
+                R.array.USSpinner,//배열 가져온다
+                android.R.layout.simple_spinner_item);//어떤형식으로
 
-        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
-                        public View getView(int position, View convertView, ViewGroup parent) {
-                                View v = super.getView(position, convertView, parent);
-                                if (position == getCount()) {
-                                        ((TextView) v.findViewById(android.R.id.text1)).setText("");
-                                        ((TextView) v.findViewById(android.R.id.text1)).setHint(getItem(getCount()));
-                                    }
-                                return v;
-                            }
+        category.setAdapter(adapter);//스피너와 연결!!
 
-                                public int getCount() {
-                                return super.getCount() - 1;
-                            }
-                    };
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                category.setAdapter(adapter);
-                category.setSelection(adapter.getCount());
+//        items = new ArrayList<String>();
+//                items.add("교통비");
+//                items.add("식비");
+//                items.add("문화생활");
+//                items.add("선택");
+//
+//        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, items) {
+//                        public View getView(int position, View convertView, ViewGroup parent) {
+//                                View v = super.getView(position, convertView, parent);
+//                                if (position == getCount()) {
+//                                        ((TextView) v.findViewById(android.R.id.text1)).setText("");
+//                                        ((TextView) v.findViewById(android.R.id.text1)).setHint(getItem(getCount()));
+//                                    }
+//                                return v;
+//                            }
+//
+//                                public int getCount() {
+//                                return super.getCount() - 1;
+//                            }
+//                    };
+//
+//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//                category.setAdapter(adapter);
+//                category.setSelection(adapter.getCount());
 
         //카메라 (사진찍기)
         mButton_camera = (Button) findViewById(R.id.camera);
