@@ -44,8 +44,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(LOG_TAG, "MainActivity.OnCreate");
@@ -55,8 +53,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
         getAllWidgets();
+        getAllUsers();//0528
         bindWidgetsWithEvents();
-        getAllUsers();
+
         tabHost=(TabHost)findViewById(R.id.tabHost);
 
         tabHost.setup();
@@ -101,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //새로추가를 눌렀을 때 null을 줌
                 addOrUpdatePersonDetailsDialog(null,-1);
             }
         });
@@ -137,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             fab2.animate().translationY(-dy);
         }
     }
-
+    //동그라미버튼
     private void getAllWidgets() {
         Log.e(LOG_TAG, "MainActivity.getAllWidgets");
         //fabAddPerson = (FloatingActionButton) findViewById(R.id.fab);
@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-   //수정
+    //수정
     @Override
     public void onClick(View v) {
 //        switch (v.getId()) {
@@ -165,13 +165,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                //getApplicationContext().startActivity(intent);
 //                break;
 //
- //       }
+        //       }
     }
 
+    //다이얼로그를 열어 데이터를 추가 + 삭제 하는 함수
     public void addOrUpdatePersonDetailsDialog(final DataDetailsModel model,final int position) {
 //subdialog
         Log.e(LOG_TAG, "MainActivity.addOrUpdatePersonDetailsDialog");
-        subDialog = new AlertDialog.Builder(MainActivity.this)
+        subDialog = new AlertDialog.Builder(MainActivity.this)//입력이 다 되지 아니하였을 때 나타나는 다이얼로그
                 .setMessage("모두 입력해주세요")
                 .setCancelable(false)
                 .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -181,50 +182,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
 //maindialog
-        LayoutInflater li = LayoutInflater.from(MainActivity.this);
-        View promptsView = li.inflate(R.layout.income_dialog, null);
-        AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);
-        mainDialog.setView(promptsView);
+        LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
+        View promptsView = li.inflate(R.layout.income_dialog, null);//정보를 입력하는 창 연결, 뷰 생성
+        AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
+        mainDialog.setView(promptsView);//알림창 지정된 레이아웃을 띄운다
+
+
+        //이 변수들은 income_dialog.xml에서 가져온 아이들, 즉 한 엑티비티에 뷰를 두개 가져온 것이다
+        //위에서 View promptsViewView이 문장을 통해 뷰를 생성했기 때문에 사용이 가능하다
         final EditText etAddCategory = (EditText) promptsView.findViewById(R.id.setCategory);
         final EditText etAddIncome = (EditText) promptsView.findViewById(R.id.setIncome);
+
+        //모델이 없다면, 즉 새로운 데이터를 입력한다면
+        //버튼을 눌렀을 때 이 함수에 null,-l을 매개변수로 주는것을 볼 수 있다. null을 준 의미가 새로운 데이터를 생성하기 위함임
+        //뷰를 띄우고 기다림
         if (model != null) {
             etAddCategory.setText(model.getName());
             etAddIncome.setText(String.valueOf(model.getPrice()));
         }
-        mainDialog.setCancelable(false)
-                .setPositiveButton("Ok", null)
+        mainDialog.setCancelable(false)//back키 설정 안함
+                .setPositiveButton("Ok", null)//ok버튼 설정
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(DialogInterface dialog, int which) {// cancel버튼 설정
                         dialog.cancel();
                     }
                 });
-        final AlertDialog dialog = mainDialog.create();
-        dialog.show();
-        Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+        final AlertDialog dialog = mainDialog.create();//다이얼 로그 객체 얻어오기
+        dialog.show();// 다이얼로그 보여주기
+        Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);//ok버튼 누르게 된다면
         b.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //입력칸이 비어있는지 확인하고 다 채워졌다면 데이터를 추가 or업데이트, 빈 칸이 있다면 채우라는 다이얼로그띄움
                 if (!Utility.isBlankField(etAddCategory) && !Utility.isBlankField(etAddIncome)) {
                     DataDetailsModel dataDetailsModel = new DataDetailsModel();
                     dataDetailsModel.setName(etAddCategory.getText().toString());
                     dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
-                    if (model == null)  //이부분 이상이상
+                    if (model == null)//데이터베이스를 새로 생성하겠다!!
                         addDataToRealm(dataDetailsModel);
-                    else
+                    else//기존에 있던 데이터를 업데이트하겠다!!
                         updatePersonDetails(dataDetailsModel, position, model.getId());
                     dialog.cancel();
-                } else {
+                } else {//다이얼 로그가 비워져 있다면 이것을 보여줘!!
                     subDialog.show();
                 }
             }
         });
     }
+    //데이터 삽입함수
     private void addDataToRealm(DataDetailsModel model) {
         Log.e(LOG_TAG, "MainActivity.addDataToRealm");
-        myRealm.beginTransaction();
+        myRealm.beginTransaction();//Transaction을 이용한 삽입, 성능이 좋아
         DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-        dataDetailsModel.setId(id);
+        dataDetailsModel.setId(id+dataDetailsModelArrayList.size());//0528
         dataDetailsModel.setName(model.getName());
         dataDetailsModel.setPrice(model.getPrice());
         dataDetailsModelArrayList.add(dataDetailsModel);
@@ -232,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsAdapter.notifyDataSetChanged();
         id++;
     }
-
+    //데이터 업데이트 함(수정)
     public void updatePersonDetails(DataDetailsModel model,int position,int personID) {
         Log.e(LOG_TAG, "MainActivity.updatePersonDetails");
         DataDetailsModel editPersonDetails = myRealm.where(DataDetailsModel.class).equalTo("id", personID).findFirst();
@@ -243,8 +255,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsModelArrayList.set(position, editPersonDetails);
         dataDetailsAdapter.notifyDataSetChanged();
     }
+
+    //0528
+    //데이터 리스트 가져오는 함수
     private void getAllUsers() {
-        Log.e(LOG_TAG, "MainActivity.getAllUsers");
+        Log.e(LOG_TAG, "DataList.getAllUsers");
         RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
         myRealm.beginTransaction();
         for (int i = 0; i < results.size(); i++) {
@@ -255,6 +270,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
     }
-    // db삭제
 
+    // db삭제
+    // 앱이 종료되었을  onCreate와 반대로 액티비티가 종료 될 때 onDestroy가 나타난다
+    protected void onDestroy() {
+        Log.e(LOG_TAG, "MainActivity.onDestroy");
+        super.onDestroy();
+        dataDetailsModelArrayList.clear();
+        myRealm.close();
+    }
 }
