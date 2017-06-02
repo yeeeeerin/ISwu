@@ -17,12 +17,14 @@ import android.view.Menu;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.Toast;
 
@@ -35,6 +37,7 @@ import static android.R.id.progress;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
+    ArrayAdapter adapter;
     ProgressBar ProgressBar;
     final static String LOG_TAG = "myLogs";
     private static int id = 1;
@@ -186,21 +189,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
 //maindialog
         LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
-        View promptsView = li.inflate(R.layout.income_dialog, null);//정보를 입력하는 창 연결, 뷰 생성
+        View promptsView = li.inflate(R.layout.mainincome_dialog, null);//정보를 입력하는 창 연결, 뷰 생성
         AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
         mainDialog.setView(promptsView);//알림창 지정된 레이아웃을 띄운다
-
+        mainDialog.setTitle("수입 입력");
 
         //이 변수들은 income_dialog.xml에서 가져온 아이들, 즉 한 엑티비티에 뷰를 두개 가져온 것이다
         //위에서 View promptsViewView이 문장을 통해 뷰를 생성했기 때문에 사용이 가능하다
-        final EditText etAddCategory = (EditText) promptsView.findViewById(R.id.setCategory);
+        final Spinner etAddCategory = (Spinner) promptsView.findViewById(R.id.setCategory);
         final EditText etAddIncome = (EditText) promptsView.findViewById(R.id.setIncome);
+
+        adapter = ArrayAdapter.createFromResource(this,
+                R.array.UISpinner,//배열 가져온다
+                android.R.layout.simple_spinner_item);//어떤형식으로
+        etAddCategory.setAdapter(adapter);
+
+
 
         //모델이 없다면, 즉 새로운 데이터를 입력한다면
         //버튼을 눌렀을 때 이 함수에 null,-l을 매개변수로 주는것을 볼 수 있다. null을 준 의미가 새로운 데이터를 생성하기 위함임
         //뷰를 띄우고 기다림
         if (model != null) {
-            etAddCategory.setText(model.getName());
+            etAddCategory.setAdapter(adapter);//스피너와 연결!!
             etAddIncome.setText(String.valueOf(model.getPrice()));
         }
         mainDialog.setCancelable(false)//back키 설정 안함
@@ -219,9 +229,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
                 //입력칸이 비어있는지 확인하고 다 채워졌다면 데이터를 추가 or업데이트, 빈 칸이 있다면 채우라는 다이얼로그띄움
-                if (!Utility.isBlankField(etAddCategory) && !Utility.isBlankField(etAddIncome)) {
+                // if (!Utility.isBlankField(etAddCategory) && !Utility.isBlankField(etAddIncome)) {
+                if (!Utility.isBlankField(etAddIncome)) {
+                    String selItem = (String)etAddCategory.getSelectedItem();
                     DataDetailsModel dataDetailsModel = new DataDetailsModel();
-                    dataDetailsModel.setName(etAddCategory.getText().toString());
+                    dataDetailsModel.setName(selItem);
                     dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
                     if (model == null)//데이터베이스를 새로 생성하겠다!!
                         addDataToRealm(dataDetailsModel);
