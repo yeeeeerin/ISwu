@@ -313,7 +313,12 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     final Bundle extras = data.getExtras();
 
                     if (extras != null) {
-                        Bitmap photo = BitmapFactory.decodeFile(albumURI.getPath());
+                        Bitmap photo;
+                        if(album)
+                            photo = BitmapFactory.decodeFile(albumURI.getPath());
+                        else
+                            photo = BitmapFactory.decodeFile(photoURI.getPath());
+
                         mPhotoImageView.setImageBitmap(photo);
                     }
 

@@ -22,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TabHost;
 import android.widget.Toast;
 
@@ -30,14 +31,14 @@ import java.util.ArrayList;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
+import static android.R.id.progress;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    TabHost tabHost;
+    ProgressBar ProgressBar;
     final static String LOG_TAG = "myLogs";
     private static int id = 1;
-    //private FloatingActionButton fabAddPerson;
     FloatingActionButton fab1, fab2, fab3, fab4;
-
     private Realm myRealm;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
@@ -55,15 +56,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getAllWidgets();
         getAllUsers();//0528
         bindWidgetsWithEvents();
-
-        tabHost=(TabHost)findViewById(R.id.tabHost);
-
-        tabHost.setup();
-        tabHost.addTab(tabHost.newTabSpec("").setContent(R.id.tabMonth).setIndicator("월별"));
-        tabHost.addTab(tabHost.newTabSpec("").setContent(R.id.tabWeek).setIndicator("주별"));
-        tabHost.addTab(tabHost.newTabSpec("").setContent(R.id.tabDay).setIndicator("일별"));
-
-        tabHost.setCurrentTab(0);
 
         ImageView addbtn=(ImageView) findViewById(R.id.addBtn);
         addbtn.setOnClickListener(new View.OnClickListener() {
@@ -110,6 +102,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent = new Intent(getApplicationContext(), UpdateSpend.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplicationContext().startActivity(intent);
+            }
+        });
+
+        ProgressBar progressBar=(ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setIndeterminate(false);
+        progressBar.setMax(100);
+        //progressBar.setProgress(80);
+        progressBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(getApplicationContext(), "___만큼 달성하였습니다", Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -256,6 +259,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsAdapter.notifyDataSetChanged();
     }
 
+
+
     //0528
     //데이터 리스트 가져오는 함수
     private void getAllUsers() {
@@ -279,4 +284,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsModelArrayList.clear();
         myRealm.close();
     }
+
 }
