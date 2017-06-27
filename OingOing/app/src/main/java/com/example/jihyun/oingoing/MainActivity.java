@@ -1,9 +1,12 @@
 package com.example.jihyun.oingoing;
 
+import android.app.Dialog;
 import android.app.TabActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.Image;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
@@ -29,6 +32,7 @@ import android.widget.TabHost;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -43,10 +47,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static int id = 1;
     FloatingActionButton fab1, fab2, fab3, fab4;
     private Realm myRealm;
+    private static DataList instance;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        ImageView viewList=(ImageView) findViewById(R.id.viewList);
+        final ImageView viewList=(ImageView) findViewById(R.id.viewList);
         viewList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -79,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getApplicationContext().startActivity(intent);
             }
         });
+
 //추가
         fab1 = (FloatingActionButton)findViewById(R.id.fab_1);
         fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
@@ -107,6 +114,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getApplicationContext().startActivity(intent);
             }
         });
+        //0627 데이터리스트불러오기
+        fab4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
+                View promptsView = li.inflate(R.layout.inflate_list_item, lvPersonNameList);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
+                
+                AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
+                dataDialog.setView(promptsView);//알림창 띄우기
+
+                dataDialog.setTitle("_월_일"); //데이터베이스 아이디로 날짜 받아오기
+
+                final AlertDialog dialog = dataDialog.create();//다이얼 로그 객체 얻어오기
+                dialog.show();// 다이얼로그 보여주기
+
+            }
+        });
+
+
 
         ProgressBar progressBar=(ProgressBar) findViewById(R.id.progressBar);
         progressBar.setIndeterminate(false);
@@ -156,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab2.setOnClickListener(this);
 
     }
+
 
     //수정
     @Override
