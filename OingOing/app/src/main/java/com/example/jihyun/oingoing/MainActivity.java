@@ -20,12 +20,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TabHost;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -48,6 +50,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
+
+    private TextView monthText;
+    private GridView monthView;
+    //사용한 금액(데이터베이스?)
+    private ListView dailyAmountView;
+    private MonthAdapter adapter1;
+   /* private DailyAdapter adapter2;*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +150,74 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(getApplicationContext(), "___만큼 달성하였습니다", Toast.LENGTH_LONG).show();
             }
         });
+
+        monthText = (TextView) findViewById(R.id.monthText);
+        monthView = (GridView) findViewById(R.id.calendarView);
+      /*  dailyAmountView = (ListView) findViewById(R.id.listView);*/
+
+        // 달력의 데이터
+        adapter1 = new MonthAdapter(this);
+
+        /*adapter2 = new DailyAdapter(this);
+
+        adapter2.addAdapter(new accountItem("점심", 7000, R.drawable.stamp));
+        adapter2.addAdapter(new accountItem("카페", 5900, R.drawable.stamp));*/
+
+        monthView.setAdapter(adapter1);
+      /*  dailyAmountView.setAdapter(adapter2);*/
+        monthText.setText(adapter1.getCurrentYear() + "년" + adapter1.getCurrentMonth() + "월");
+
+        monthView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                showMessage();
+            }
+        });
+
+        dailyAmountView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            }
+        });
+
+        Button monthPrevious = (Button) findViewById(R.id.monthPrevious);
+        // monthPrevious버튼 클릭시
+        monthPrevious.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                adapter1.setPriviousMonth();
+                adapter1.notifyDataSetChanged();
+                monthText.setText(adapter1.getCurrentYear() + "년" + adapter1.getCurrentMonth() + "월");
+            }
+        });
+        // monthNext버튼 클릭시
+        Button monthNext = (Button) findViewById(R.id.monthNext);
+        monthNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                adapter1.setNextMonth();
+                adapter1.notifyDataSetChanged();
+                monthText.setText(adapter1.getCurrentYear() + "년" + adapter1.getCurrentMonth() + "월");
+            }
+        });
+
+    }
+    // 요일 클릭시 대화창
+    public void showMessage(){
+        android.app.AlertDialog.Builder builder= new android.app.AlertDialog.Builder(this);
+        builder.setTitle("요일");
+        builder.setMessage("종료하시겠습니까?");
+        builder.setIcon(android.R.drawable.ic_dialog_alert);
+        //"예"버튼을 눌렀을떄
+        builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+        android.app.AlertDialog dialog =builder.create();
+        dialog.show();
     }
 
     private void ToggleFab() {
