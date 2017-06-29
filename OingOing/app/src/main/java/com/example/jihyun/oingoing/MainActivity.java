@@ -1,12 +1,9 @@
 package com.example.jihyun.oingoing;
 
-import android.app.Dialog;
 import android.app.TabActivity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.Image;
-import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
@@ -32,7 +29,7 @@ import android.widget.TabHost;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -47,12 +44,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static int id = 1;
     FloatingActionButton fab1, fab2, fab3, fab4;
     private Realm myRealm;
-    private static DataList instance;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-        final ImageView viewList=(ImageView) findViewById(R.id.viewList);
+        ImageView viewList=(ImageView) findViewById(R.id.viewList);
         viewList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getApplicationContext().startActivity(intent);
             }
         });
-
 //추가
         fab1 = (FloatingActionButton)findViewById(R.id.fab_1);
         fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
@@ -114,14 +108,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getApplicationContext().startActivity(intent);
             }
         });
-        //0627 데이터리스트불러오기
+
+//0627 데이터리스트불러오기
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
                 View promptsView = li.inflate(R.layout.inflate_list_item, lvPersonNameList);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
-                
+
                 AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
                 dataDialog.setView(promptsView);//알림창 띄우기
 
@@ -132,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
+
 
 
 
@@ -183,7 +179,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab2.setOnClickListener(this);
 
     }
-
 
     //수정
     @Override
@@ -263,6 +258,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     DataDetailsModel dataDetailsModel = new DataDetailsModel();
                     dataDetailsModel.setName(selItem);
                     dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
+                    dataDetailsModel.setDate(new Date()); //date추가
+
+                    Log.d("ee",dataDetailsModel.getDate().toString());
                     if (model == null)//데이터베이스를 새로 생성하겠다!!
                         addDataToRealm(dataDetailsModel);
                     else//기존에 있던 데이터를 업데이트하겠다!!
@@ -276,12 +274,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
     //데이터 삽입함수
     private void addDataToRealm(DataDetailsModel model) {
-        Log.e(LOG_TAG, "MainActivity.addDataToRealm");
-        myRealm.beginTransaction();//Transaction을 이용한 삽입, 성능이 좋아
+        Log.e(LOG_TAG, "DataList.addDataToRealm");
+
+
+        myRealm.beginTransaction();
+
         DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-        dataDetailsModel.setId(id+dataDetailsModelArrayList.size());//0528
+        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()); //id+남아있는리스트개수를 해줘야해
         dataDetailsModel.setName(model.getName());
         dataDetailsModel.setPrice(model.getPrice());
+        dataDetailsModel.setDate(model.getDate());
+        dataDetailsModel.setInOrOut(false); //수입
         dataDetailsModelArrayList.add(dataDetailsModel);
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
