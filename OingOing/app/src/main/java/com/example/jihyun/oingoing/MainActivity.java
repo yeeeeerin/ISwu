@@ -3,7 +3,9 @@ package com.example.jihyun.oingoing;
 import android.app.TabActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.Image;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
@@ -113,23 +115,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //dataListDialog( , ); //날짜에 해당하는 리스트뷰 받아오기
 
                 LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
-                View promptsView = li.inflate(R.layout.inflate_list_item, lvPersonNameList);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
+                View promptsView = li.inflate(R.layout.inflate_list_item, null);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
 
                 AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
-                dataDialog.setView(promptsView);//알림창 띄우기
+                //myRealm = Realm.getInstance(DataList.getInstance());
 
-                dataDialog.setTitle("_월_일"); //데이터베이스 아이디로 날짜 받아오기
+                final DataDetailsModel[] items = dataDetailsModelArrayList.toArray(new DataDetailsModel[dataDetailsModelArrayList.size()]);
+
+                //dataDialog.setView(promptsView);
+                //dataDialog.setTitle(dataDetailsModelArrayList.get(date).getDate().toString()+""); //데이터베이스 아이디로 날짜 받아오기
+                    dataDialog.setTitle(dataDetailsModelArrayList.get(1).getDate()+"");
+                //if(date==dataDetailsModelArrayList.get(date).getDate()) {
+                    //dataDialog.setMessage(dataDetailsModelArrayList.get(1).getName().toString() + " " + dataDetailsModelArrayList.get(1).getPrice()); //데이터베이스 아이디로 날짜 받아오기
+                dataDialog.setMessage(dataDetailsModelArrayList+" "); //
+
+                //}
 
                 final AlertDialog dialog = dataDialog.create();//다이얼 로그 객체 얻어오기
                 dialog.show();// 다이얼로그 보여주기
-
             }
         });
-
-
-
 
         ProgressBar progressBar=(ProgressBar) findViewById(R.id.progressBar);
         progressBar.setIndeterminate(false);
@@ -195,6 +203,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                break;
 //
         //       }
+    }
+
+    //0629 데이터 불러오는 다이얼로그
+    public void dataListDialog(final DataDetailsModel model, final int date){
+
+        LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
+        View promptsView = li.inflate(R.layout.inflate_list_item, null);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
+
+        AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
+        //myRealm = Realm.getInstance(DataList.getInstance());
+
+        //final DataDetailsModel[] items = dataDetailsModelArrayList.toArray(new DataDetailsModel[dataDetailsModelArrayList.size()]);
+        //ArrayAdapter<DataDetailsModel> ad=new ArrayAdapter<DataDetailsModel>(this,android.R.layout.simple_list_item_1, items);
+
+        //dataDialog.setView(dataDetailsModelArrayList.get(date).getDate());
+
+        dataDialog.setTitle(dataDetailsModelArrayList.get(date).getDate().toString()+""); //데이터베이스 아이디로 날짜 받아오기
+
+        dataDialog.setMessage(dataDetailsModelArrayList.get(date).getName().toString() + " " + dataDetailsModelArrayList.get(date).getPrice()); //데이터베이스 아이디로 날짜 받아오기
+
+        //lvPersonNameList.setAdapter(ad);
+        final AlertDialog dialog = dataDialog.create();//다이얼 로그 객체 얻어오기
+        dialog.show();// 다이얼로그 보여주기
+
     }
 
     //다이얼로그를 열어 데이터를 추가 + 삭제 하는 함수
