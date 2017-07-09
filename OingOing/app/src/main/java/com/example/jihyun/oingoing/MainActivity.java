@@ -51,6 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
+    private static ArrayList<DailyDetailsModel> dailyDetailsModelArrayList = new ArrayList<>();
+    private DailyDetailsAdapter dailyDetailsAdapter;
     private AlertDialog.Builder subDialog;
 
     private TextView monthText;
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm = Realm.getInstance(MainActivity.this);
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
+        dailyDetailsAdapter = new DailyDetailsAdapter(MainActivity.this, dailyDetailsModelArrayList);
         getAllWidgets();
         getAllUsers();//0528
         bindWidgetsWithEvents();
@@ -120,31 +123,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-//0627 데이터리스트불러오기
+
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //dataListDialog( , ); //날짜에 해당하는 리스트뷰 받아오기
-
-                LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
-                View promptsView = li.inflate(R.layout.inflate_list_item, null);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
-
-                AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
-                //myRealm = Realm.getInstance(DataList.getInstance());
-
-                final DataDetailsModel[] items = dataDetailsModelArrayList.toArray(new DataDetailsModel[dataDetailsModelArrayList.size()]);
-
-                //dataDialog.setView(promptsView);
-                //dataDialog.setTitle(dataDetailsModelArrayList.get(date).getDate().toString()+""); //데이터베이스 아이디로 날짜 받아오기
-                    dataDialog.setTitle(dataDetailsModelArrayList.get(1).getDate()+"");
-                //if(date==dataDetailsModelArrayList.get(date).getDate()) {
-                    //dataDialog.setMessage(dataDetailsModelArrayList.get(1).getName().toString() + " " + dataDetailsModelArrayList.get(1).getPrice()); //데이터베이스 아이디로 날짜 받아오기
-                dataDialog.setMessage(dataDetailsModelArrayList+" "); //
-
-                //}
-
-                final AlertDialog dialog = dataDialog.create();//다이얼 로그 객체 얻어오기
-                dialog.show();// 다이얼로그 보여주기
+                Intent intent2 = new Intent(getApplicationContext(),DailyList.class);
+                intent2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(intent2);
             }
         });
 
@@ -208,7 +193,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void showMessage(){
         android.app.AlertDialog.Builder builder= new android.app.AlertDialog.Builder(this);
         builder.setTitle("요일");
-        builder.setMessage("종료하시겠습니까?");
+        //builder.setMessage("종료하시겠습니까?");
+        builder.setMessage(dailyDetailsModelArrayList.get(0).getstartDate()+"일 ~ "+dailyDetailsModelArrayList.get(0).getEndDate()+"\n"+dailyDetailsModelArrayList.get(0).getMoney_set()+"원");
         builder.setIcon(android.R.drawable.ic_dialog_alert);
         //"예"버튼을 눌렀을떄
         builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
@@ -221,10 +207,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.show();
 
     }
-
-
-
-
 
 
     private void ToggleFab() {
@@ -281,29 +263,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //       }
     }
 
-    //0629 데이터 불러오는 다이얼로그
-    public void dataListDialog(final DataDetailsModel model, final int date){
 
-        LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
-        View promptsView = li.inflate(R.layout.inflate_list_item, null);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
-
-        AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
-        //myRealm = Realm.getInstance(DataList.getInstance());
-
-        //final DataDetailsModel[] items = dataDetailsModelArrayList.toArray(new DataDetailsModel[dataDetailsModelArrayList.size()]);
-        //ArrayAdapter<DataDetailsModel> ad=new ArrayAdapter<DataDetailsModel>(this,android.R.layout.simple_list_item_1, items);
-
-        //dataDialog.setView(dataDetailsModelArrayList.get(date).getDate());
-
-        dataDialog.setTitle(dataDetailsModelArrayList.get(date).getDate().toString()+""); //데이터베이스 아이디로 날짜 받아오기
-
-        dataDialog.setMessage(dataDetailsModelArrayList.get(date).getName().toString() + " " + dataDetailsModelArrayList.get(date).getPrice()); //데이터베이스 아이디로 날짜 받아오기
-
-        //lvPersonNameList.setAdapter(ad);
-        final AlertDialog dialog = dataDialog.create();//다이얼 로그 객체 얻어오기
-        dialog.show();// 다이얼로그 보여주기
-
-    }
 
     //다이얼로그를 열어 데이터를 추가 + 삭제 하는 함수
     public void addOrUpdatePersonDetailsDialog(final DataDetailsModel model,final int position) {
@@ -388,8 +348,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.beginTransaction();
 
         DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()); //id+남아있는리스트개수를 해줘야해
+
+        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()+1); //id+남아있는리스트개수를 해줘야해
+
         dataDetailsModel.setName(model.getName());
+
         dataDetailsModel.setPrice(model.getPrice());
         dataDetailsModel.setDate(model.getDate());
         dataDetailsModel.setInOrOut(false); //수입
@@ -398,6 +361,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsAdapter.notifyDataSetChanged();
         id++;
     }
+
     //데이터 업데이트 함(수정)
     public void updatePersonDetails(DataDetailsModel model,int position,int personID) {
         Log.e(LOG_TAG, "MainActivity.updatePersonDetails");
@@ -425,6 +389,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
+
+        RealmResults<DailyDetailsModel> results2 = myRealm.where(DailyDetailsModel.class).findAll();
+        myRealm.beginTransaction();
+        for (int i = 0; i < results2.size(); i++) {
+            dailyDetailsModelArrayList.add(results2.get(i));
+        }
+        if(results2.size()>0)
+            id = myRealm.where(DailyDetailsModel.class).max("id").intValue() + 1;
+        myRealm.commitTransaction();
+        dailyDetailsAdapter.notifyDataSetChanged();
     }
 
     // db삭제
@@ -433,6 +407,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(LOG_TAG, "MainActivity.onDestroy");
         super.onDestroy();
         dataDetailsModelArrayList.clear();
+        dailyDetailsModelArrayList.clear();
         myRealm.close();
     }
 
