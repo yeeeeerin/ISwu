@@ -1,6 +1,8 @@
 package com.example.jihyun.oingoing;
 
+import android.app.Dialog;
 import android.app.TabActivity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -51,8 +53,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
-    private static ArrayList<DailyDetailsModel> dailyDetailsModelArrayList = new ArrayList<>();
-    private DailyDetailsAdapter dailyDetailsAdapter;
     private AlertDialog.Builder subDialog;
 
     private TextView monthText;
@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm = Realm.getInstance(MainActivity.this);
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
-        dailyDetailsAdapter = new DailyDetailsAdapter(MainActivity.this, dailyDetailsModelArrayList);
         getAllWidgets();
         getAllUsers();//0528
         bindWidgetsWithEvents();
@@ -127,7 +126,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent2 = new Intent(getApplicationContext(),DailyList.class);
+                Intent intent2 = new Intent(getApplicationContext(),DataList.class);
                 intent2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplicationContext().startActivity(intent2);
             }
@@ -163,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         monthView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                showMessage();
+                showCostom(MainActivity.this,position);
             }
         });
 
@@ -189,22 +188,62 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
-    // 요일 클릭시 대화창
-    public void showMessage(){
-        android.app.AlertDialog.Builder builder= new android.app.AlertDialog.Builder(this);
-        builder.setTitle("요일");
-        //builder.setMessage("종료하시겠습니까?");
-        builder.setMessage(dailyDetailsModelArrayList.get(0).getstartDate()+"일 ~ "+dailyDetailsModelArrayList.get(0).getEndDate()+"\n"+dailyDetailsModelArrayList.get(0).getMoney_set()+"원");
-        builder.setIcon(android.R.drawable.ic_dialog_alert);
-        //"예"버튼을 눌렀을떄
-        builder.setPositiveButton("예", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
+    public void showCostom(Context context, int position){
+
+        Dialog dialog=new Dialog(context);
+        // dialog화면의 정보를 lay_customdialog으로
+        dialog.setContentView(R.layout.lay_customdialog);
+        int result=0;
+
+        TextView txt_year =(TextView)dialog.findViewById(R.id.txt_year);
+        TextView txt_month=(TextView)dialog.findViewById(R.id.txt_month);
+        TextView txt_day=(TextView)dialog.findViewById(R.id.txt_day);
+        TextView dailyMoney=(TextView)dialog.findViewById(R.id.dailyMoney);
+        TextView restMoney=(TextView)dialog.findViewById(R.id.restMoney);
+
+        String year=String.valueOf(adapter1.getCurrentYear());
+        String month=String.valueOf(adapter1.getCurrentMonth());
+        String day=String.valueOf(adapter1.items[position].date);
+        String dmoney="";
+        String rmoney="";
+
+        txt_year.setText(year);
+        txt_month.setText(month);
+        txt_day.setText(day);
+        String date=year+"-"+month+"-"+ day;
+        //날짜별로 일일설정액 불러오기
+        int number=0;
+        for(int i=0; i<dataDetailsModelArrayList.size();i++) {
+
+            while(dataDetailsModelArrayList.get(i).getstartDate()!=null) {
+                if (date.equals(dataDetailsModelArrayList.get(i).getstartDate().toString())){
+                    number = i;
+
+                dmoney = String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set());}
+                break;
             }
-        });
-        android.app.AlertDialog dialog =builder.create();
+        }
+        dailyMoney.setText(dmoney);
+        int number2=0;
+        // 날짜별 필터링 해야해, result 부분 수정해야해 
+        for(int i=0;i<dataDetailsModelArrayList.size();i++){
+            while(dataDetailsModelArrayList.get(i).getPrice()!=0) {
+                while(dataDetailsModelArrayList.get(i).isInOrOut()==true) {
+                    //if (date.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
+                    //    number2 = i;
+                    result += dataDetailsModelArrayList.get(i).getPrice();
+                    break;
+                }
+                break;
+            }
+        }
+        rmoney=String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set() - result);
+        restMoney.setText(rmoney);
         dialog.show();
+
+
+        //String dmoney=String.valueOf(dailyDetailsModelArrayList.get(position).getMoney_set()+"원");
+        //String rmoney=String.valueOf(result);
 
     }
 
@@ -390,15 +429,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
 
-        RealmResults<DailyDetailsModel> results2 = myRealm.where(DailyDetailsModel.class).findAll();
-        myRealm.beginTransaction();
-        for (int i = 0; i < results2.size(); i++) {
-            dailyDetailsModelArrayList.add(results2.get(i));
-        }
-        if(results2.size()>0)
-            id = myRealm.where(DailyDetailsModel.class).max("id").intValue() + 1;
-        myRealm.commitTransaction();
-        dailyDetailsAdapter.notifyDataSetChanged();
     }
 
     // db삭제
@@ -407,7 +437,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(LOG_TAG, "MainActivity.onDestroy");
         super.onDestroy();
         dataDetailsModelArrayList.clear();
-        dailyDetailsModelArrayList.clear();
         myRealm.close();
     }
 

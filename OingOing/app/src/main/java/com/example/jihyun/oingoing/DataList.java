@@ -124,6 +124,7 @@ public class DataList extends AppCompatActivity {
                     dataDetailsModel.setName(etAddPersonName.getText().toString());
                     dataDetailsModel.setPrice(Integer.parseInt(etAddPersonAge.getText().toString()));
                     dataDetailsModel.setDate(new Date());
+                    dataDetailsModel.setMoney_set(model.getMoney_set());
                     if (model == null)
                         Log.d("ee","nono");
                         // addDataToRealm(dataDetailsModel);
@@ -147,6 +148,7 @@ public class DataList extends AppCompatActivity {
         dataDetailsModel.setName(model.getName());
         dataDetailsModel.setPrice(model.getPrice());
         dataDetailsModel.setDate(model.getDate());
+        dataDetailsModel.setMoney_set(model.getMoney_set());
         dataDetailsModelArrayList.add(dataDetailsModel);
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();

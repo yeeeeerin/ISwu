@@ -61,6 +61,9 @@ public class DataDetailsAdapter extends BaseAdapter {
             holder.tvPersonPrice=(TextView) v.findViewById(R.id.tvPersonPrice);
             holder.ivEditPesonDetail=(ImageView)v.findViewById(R.id.ivEditPesonDetail);
             holder.ivDeletePerson=(ImageView)v.findViewById(R.id.ivDeletePerson);
+            holder.setMoney = (TextView) v.findViewById(R.id.setMoney);
+            holder.startDate=(TextView) v.findViewById(R.id.startDate);
+            holder.endDate=(TextView) v.findViewById(R.id.endDate);
 
             v.setTag(holder);
         } else {
@@ -100,7 +103,7 @@ public class DataDetailsAdapter extends BaseAdapter {
         return v;
     }
     class Holder {
-        TextView tvPersonName, tvPersonPrice;
+        TextView tvPersonName, tvPersonPrice, setMoney, startDate, endDate;;
         ImageView ivDeletePerson, ivEditPesonDetail;
     }
     public static void ShowConfirmDialog(Context context,final int personId,final int position)

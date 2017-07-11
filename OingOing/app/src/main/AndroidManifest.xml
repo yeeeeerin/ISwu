@@ -25,7 +25,6 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".UpdateSpend"></activity>
         <activity android:name=".DataList"></activity>
-        <activity android:name=".DailyList"></activity>
     </application>
 
 </manifest>

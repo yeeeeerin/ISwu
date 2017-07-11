@@ -45,16 +45,16 @@ public class DailyMoneySet extends AppCompatActivity implements View.OnClickList
     private EditText startDate, endDate, setMoney;
     private AlertDialog.Builder subDialog;
 
-    private static ArrayList<DailyDetailsModel> dailyDetailsModelArrayList = new ArrayList<>();
-    private DailyDetailsAdapter dailyDetailsAdapter;
+    private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
+    private DataDetailsAdapter dataDetailsAdapter;
     private static int id=1;
     protected void onCreate(Bundle savedInstanceState){
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dailymoneyset);
         myRealm = Realm.getInstance(DailyMoneySet.this);
-        dailyDetailsAdapter = new DailyDetailsAdapter(DailyMoneySet.this, dailyDetailsModelArrayList);
-        dateFormatter = new SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+        dataDetailsAdapter = new DataDetailsAdapter(DailyMoneySet.this, dataDetailsModelArrayList);
+        dateFormatter = new SimpleDateFormat("yyyy-M-d", Locale.KOREA);
         startDate = (EditText) findViewById(R.id.startdate);
         endDate = (EditText) findViewById(R.id.enddate);
         setMoney = (EditText) findViewById(R.id.setMoney);
@@ -113,16 +113,16 @@ public class DailyMoneySet extends AppCompatActivity implements View.OnClickList
 
                     //데이터베이스에 추가하기
                     myRealm.beginTransaction();
-                    DailyDetailsModel dailyDetailsModel = myRealm.createObject(DailyDetailsModel.class);
+                    DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
 
-                    dailyDetailsModel.setId(id+dailyDetailsModelArrayList.size());
-                    dailyDetailsModel.setMoney_set(dailymoney);
-                    dailyDetailsModel.setStartDate(start_date);
-                    dailyDetailsModel.setEndDate(end_date);
+                    dataDetailsModel.setId(id+dataDetailsModelArrayList.size());
+                    dataDetailsModel.setMoney_set(dailymoney);
+                    dataDetailsModel.setStartDate(start_date);
+                    dataDetailsModel.setEndDate(end_date);
 
-                    dailyDetailsModelArrayList.add(dailyDetailsModel);
+                    dataDetailsModelArrayList.add(dataDetailsModel);
                     myRealm.commitTransaction();
-                    dailyDetailsAdapter.notifyDataSetChanged();
+                    dataDetailsAdapter.notifyDataSetChanged();
                     id++;
 
                     //메인으로 돌아가기
@@ -153,20 +153,20 @@ public class DailyMoneySet extends AppCompatActivity implements View.OnClickList
     }
 
     private void getAllUsers() {
-        RealmResults<DailyDetailsModel> results = myRealm.where(DailyDetailsModel.class).findAll();
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
         myRealm.beginTransaction();
         for (int i = 0; i < results.size(); i++) {
-            dailyDetailsModelArrayList.add(results.get(i));
+            dataDetailsModelArrayList.add(results.get(i));
         }
         if(results.size()>0)
-            id = myRealm.where(DailyDetailsModel.class).max("id").intValue() + 1;
+            id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
         myRealm.commitTransaction();
-        dailyDetailsAdapter.notifyDataSetChanged();
+        dataDetailsAdapter.notifyDataSetChanged();
     }
 
     protected void onDestroy() {
         super.onDestroy();
-        dailyDetailsModelArrayList.clear();
+        dataDetailsModelArrayList.clear();
         myRealm.close();
     }
 
