@@ -26,6 +26,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -63,6 +64,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
+    SimpleDateFormat transFormat = new SimpleDateFormat("yyyyMMdd");
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,15 +105,13 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     String selItem = (String)category.getSelectedItem();
 
 
-                    //데이터베이스에 추가하기
-                    Date d = new Date();
-
+                    //데이터베이스에 추가
                     myRealm.beginTransaction();
                     DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
                     dataDetailsModel.setId(id+dataDetailsModelArrayList.size());
                     dataDetailsModel.setName(selItem);
                     dataDetailsModel.setPrice(money);
-                    dataDetailsModel.setDate(d);
+                    dataDetailsModel.setDate(transFormat.format(new Date()));
                     dataDetailsModel.setInOrOut(true); //지출
                     dataDetailsModelArrayList.add(dataDetailsModel);
                     myRealm.commitTransaction();
@@ -123,6 +123,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                             MainActivity.class);//다음 넘어갈 클래스 지정
 
                     startActivity(intent);//다음 화면으로 넘어간다
+                    finish();
                 }
                 else{
                     subDialog.show();

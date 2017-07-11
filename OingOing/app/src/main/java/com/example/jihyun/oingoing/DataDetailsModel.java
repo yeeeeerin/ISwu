@@ -17,7 +17,7 @@ public class DataDetailsModel extends RealmObject {
     private int id;
     private String name;
     private int price;
-    private Date date;
+    private String date;
     private int money_set = 0; //일일설정액
     private String startDate;
     private String endDate;
@@ -46,10 +46,11 @@ public class DataDetailsModel extends RealmObject {
     public void setPrice(int price) {
         this.price = price;
     }
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
-    public void setDate(Date date) { this.date = date; }
+    public void setDate(String date) { this.date = date; }
+
 
 
     public String getEndDate() {

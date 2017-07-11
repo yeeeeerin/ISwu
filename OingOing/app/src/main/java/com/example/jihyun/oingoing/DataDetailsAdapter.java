@@ -24,6 +24,11 @@ public class DataDetailsAdapter extends BaseAdapter {
     private ArrayList<DataDetailsModel> dataDetailsArrayList;
     private Context context;
     private LayoutInflater inflater;
+    private String date;
+
+    public void setDate(String date){
+        this.date = date;
+    }
 
     public DataDetailsAdapter(Context context, ArrayList<DataDetailsModel> dataDetailsArrayList) {
         this.context = context;
@@ -87,8 +92,10 @@ public class DataDetailsAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 Log.e(LOG_TAG, "DataDetailsAdapter.getView.ivEditPesonDetail.onClick");
-                DataDetailsModel dataToEditModel= DataList.getInstance().searchData(dataDetailsArrayList.get(position).getId());
-                DataList.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position);
+                //DataDetailsModel dataToEditModel= DataList.getInstance().searchData(dataDetailsArrayList.get(position).getId());
+                //DataList.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position);
+                DataDetailsModel dataToEditModel= MainActivity.getInstance().searchData(dataDetailsArrayList.get(position).getId());
+                MainActivity.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position);
             }
         });
         holder.ivDeletePerson.setOnClickListener(new View.OnClickListener() {
@@ -115,7 +122,8 @@ public class DataDetailsAdapter extends BaseAdapter {
                 .setCancelable(true)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog,int id) {
-                        DataList.getInstance().deleteData(personId,position);
+                        //DataList.getInstance().deleteData(personId,position);
+                        MainActivity.getInstance().deleteData(personId,position);
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {

@@ -23,6 +23,7 @@ import io.realm.RealmResults;
 /**
  * Created by jihyun on 2017-05-04.
  */
+//필요없음!
 
 public class DataList extends AppCompatActivity {
     private DataDetailsAdapter dataDetailsAdapter;
@@ -123,7 +124,7 @@ public class DataList extends AppCompatActivity {
                     DataDetailsModel dataDetailsModel = new DataDetailsModel();
                     dataDetailsModel.setName(etAddPersonName.getText().toString());
                     dataDetailsModel.setPrice(Integer.parseInt(etAddPersonAge.getText().toString()));
-                    dataDetailsModel.setDate(new Date());
+                    //dataDetailsModel.setDate(new Date());
                     dataDetailsModel.setMoney_set(model.getMoney_set());
                     if (model == null)
                         Log.d("ee","nono");

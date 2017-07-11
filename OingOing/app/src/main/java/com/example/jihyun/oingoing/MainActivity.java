@@ -34,6 +34,7 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -53,7 +54,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
+    private static MainActivity instance;
     private AlertDialog.Builder subDialog;
+
+    String SetDate; // 선택 날짜 설정
+
+    SimpleDateFormat transFormat = new SimpleDateFormat("yyyyMMdd");
 
     private TextView monthText;
     private GridView monthView;
@@ -71,6 +77,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
         getAllWidgets();
+        instance = this;
+        setPersonDetailsAdapter();
+
         getAllUsers();//0528
         bindWidgetsWithEvents();
 
@@ -88,9 +97,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         viewList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getApplicationContext(),DataList.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getApplicationContext().startActivity(intent);
+                //Intent intent = new Intent(getApplicationContext(),DataList.class);
+                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                //getApplicationContext().startActivity(intent);
             }
         });
 //추가
@@ -126,9 +135,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent2 = new Intent(getApplicationContext(),DataList.class);
-                intent2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                getApplicationContext().startActivity(intent2);
+                //Intent intent2 = new Intent(getApplicationContext(),DataList.class);
+                //intent2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                //getApplicationContext().startActivity(intent2);
             }
         });
 
@@ -225,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         dailyMoney.setText(dmoney);
         int number2=0;
-        // 날짜별 필터링 해야해, result 부분 수정해야해 
+        // 날짜별 필터링 해야해, result 부분 수정해야해
         for(int i=0;i<dataDetailsModelArrayList.size();i++){
             while(dataDetailsModelArrayList.get(i).getPrice()!=0) {
                 while(dataDetailsModelArrayList.get(i).isInOrOut()==true) {
@@ -246,7 +255,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //String rmoney=String.valueOf(result);
 
     }
+    public static MainActivity getInstance() {
+        Log.e(LOG_TAG, "DataList.getInstance");
+        return instance;
+    }
 
+    private void setPersonDetailsAdapter() {
+        Log.e(LOG_TAG, "DataList.setPersonDetailsAdapter");
+        dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
+        dataDetailsAdapter.setDate(transFormat.format(new Date()));
+        lvPersonNameList.setAdapter(dataDetailsAdapter);//데이터 리스트 보여주는 함수
+    }
+
+    public void deleteData(int personId, int position) {
+        Log.e(LOG_TAG, "DataList.deletePerson");
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).equalTo("id", personId).findAll();
+
+        myRealm.beginTransaction();
+        results.remove(0);
+        myRealm.commitTransaction();
+        dataDetailsModelArrayList.remove(position);
+        dataDetailsAdapter.notifyDataSetChanged();
+    }
+    public DataDetailsModel searchData(int personId) {
+        Log.e(LOG_TAG, "DataList.searchPerson");
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).equalTo("id", personId).findAll();
+        myRealm.beginTransaction();
+        myRealm.commitTransaction();
+        return results.get(0);
+    }
 
     private void ToggleFab() {
         // 버튼들이 보여지고있는 상태인 경우 숨겨줍니다.
@@ -365,7 +402,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     DataDetailsModel dataDetailsModel = new DataDetailsModel();
                     dataDetailsModel.setName(selItem);
                     dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
-                    dataDetailsModel.setDate(new Date()); //date추가
+                    dataDetailsModel.setDate(transFormat.format(new Date())); //date추가
 
                     Log.d("ee",dataDetailsModel.getDate().toString());
                     if (model == null)//데이터베이스를 새로 생성하겠다!!
