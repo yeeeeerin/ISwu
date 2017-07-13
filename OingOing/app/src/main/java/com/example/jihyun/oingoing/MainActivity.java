@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     String SetDate; // 선택 날짜 설정
 
-    SimpleDateFormat transFormat = new SimpleDateFormat("yyyyMMdd");
+    SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-M-d");
 
     private TextView monthText;
     private GridView monthView;
@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent = new Intent(getApplicationContext(),DailyMoneySet.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplicationContext().startActivity(intent);
+                finish();
             }
         });
 
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent intent = new Intent(getApplicationContext(), UpdateSpend.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 getApplicationContext().startActivity(intent);
+                finish();
             }
         });
 
@@ -219,13 +221,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         txt_year.setText(year);
         txt_month.setText(month);
         txt_day.setText(day);
-        String date=year+"-"+month+"-"+ day;
+        String datee=year+"-"+month+"-"+ day;
+
+        StringBuffer date=new StringBuffer();
+        dataDetailsAdapter.setDate(year+"-"+month+"-"+day);
+
         //날짜별로 일일설정액 불러오기
         int number=0;
         for(int i=0; i<dataDetailsModelArrayList.size();i++) {
 
             while(dataDetailsModelArrayList.get(i).getstartDate()!=null) {
-                if (date.equals(dataDetailsModelArrayList.get(i).getstartDate().toString())){
+                if (datee.equals(dataDetailsModelArrayList.get(i).getstartDate().toString())){
                     number = i;
 
                 dmoney = String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set());}
@@ -238,16 +244,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for(int i=0;i<dataDetailsModelArrayList.size();i++){
             while(dataDetailsModelArrayList.get(i).getPrice()!=0) {
                 while(dataDetailsModelArrayList.get(i).isInOrOut()==true) {
-                    //if (date.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
-                    //    number2 = i;
+                  //  if (datee.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
+                    // {
+                  //      number2 = i;
                     result += dataDetailsModelArrayList.get(i).getPrice();
+                //}
                     break;
                 }
                 break;
             }
         }
-        rmoney=String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set() - result);
-        restMoney.setText(rmoney);
+        if(dmoney!="") {
+            rmoney = String.valueOf(Integer.valueOf(dmoney) - result);
+            restMoney.setText(rmoney);
+        }else{
+        }
         dialog.show();
 
 
