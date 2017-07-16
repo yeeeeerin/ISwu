@@ -1,18 +1,24 @@
 package com.example.jihyun.oingoing;
 
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.TabActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.BitmapFactory;
 import android.media.Image;
+import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -137,9 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent2 = new Intent(getApplicationContext(),DataList.class);
-                //intent2.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //getApplicationContext().startActivity(intent2);
+                //Toast.makeText(getApplicationContext(), dataDetailsModelArrayList.get(0).getDate(), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -223,8 +227,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         txt_day.setText(day);
         String datee=year+"-"+month+"-"+ day;
 
-        StringBuffer date=new StringBuffer();
-        dataDetailsAdapter.setDate(year+"-"+month+"-"+day);
+        dataDetailsAdapter.setDate(datee);
 
         //날짜별로 일일설정액 불러오기
         int number=0;
@@ -240,15 +243,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         dailyMoney.setText(dmoney);
         int number2=0;
-        // 날짜별 필터링 해야해, result 부분 수정해야해
+        //남은금액 계산
         for(int i=0;i<dataDetailsModelArrayList.size();i++){
             while(dataDetailsModelArrayList.get(i).getPrice()!=0) {
                 while(dataDetailsModelArrayList.get(i).isInOrOut()==true) {
-                  //  if (datee.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
-                    // {
-                  //      number2 = i;
-                    result += dataDetailsModelArrayList.get(i).getPrice();
-                //}
+                    if (datee.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
+                     {
+                        number2 = i;
+                    result += dataDetailsModelArrayList.get(number2).getPrice();
+                }
                     break;
                 }
                 break;
@@ -257,15 +260,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(dmoney!="") {
             rmoney = String.valueOf(Integer.valueOf(dmoney) - result);
             restMoney.setText(rmoney);
+            if (Integer.valueOf(rmoney) < 0) {
+                NotificationSomethings();
+            }
         }else{
         }
         dialog.show();
 
 
-        //String dmoney=String.valueOf(dailyDetailsModelArrayList.get(position).getMoney_set()+"원");
-        //String rmoney=String.valueOf(result);
-
     }
+    //푸시알림 설정
+    public void NotificationSomethings(){
+        Resources res=getResources();
+        NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
+        builder.setContentTitle("상태바 드래그시 보이는 타이틀")
+                .setContentText("상태바 드래그시 보이는 서브 타이틀")
+                .setTicker("상태바 한줄 메시지")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeResource(res,R.mipmap.ic_launcher))
+                .setAutoCancel(true)
+                .setWhen(System.currentTimeMillis())
+                .setDefaults(Notification.DEFAULT_ALL);
+        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.LOLLIPOP){
+            builder.setCategory(Notification.CATEGORY_MESSAGE)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setVisibility(Notification.VISIBILITY_PUBLIC);
+        }
+
+        NotificationManager nm=(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(20,builder.build());
+    }
+
     public static MainActivity getInstance() {
         Log.e(LOG_TAG, "DataList.getInstance");
         return instance;
