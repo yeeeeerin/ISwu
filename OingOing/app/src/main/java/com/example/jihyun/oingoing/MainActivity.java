@@ -14,6 +14,8 @@ import android.media.Image;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +26,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -82,6 +85,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm = Realm.getInstance(MainActivity.this);
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+
         getAllWidgets();
         instance = this;
         setPersonDetailsAdapter();
@@ -512,5 +520,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsModelArrayList.clear();
         myRealm.close();
     }
+
+
+
+
+
+
+
+
 
 }
