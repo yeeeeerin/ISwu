@@ -24,11 +24,7 @@ public class DataDetailsAdapter extends BaseAdapter {
     private ArrayList<DataDetailsModel> dataDetailsArrayList;
     private Context context;
     private LayoutInflater inflater;
-    private String date;
 
-    public void setDate(String date){
-        this.date = date;
-    }
 
     public DataDetailsAdapter(Context context, ArrayList<DataDetailsModel> dataDetailsArrayList) {
         this.context = context;
@@ -59,16 +55,14 @@ public class DataDetailsAdapter extends BaseAdapter {
         Log.e(LOG_TAG, "DataDetailsAdapter.getView");
         View v = convertView;
         Holder holder;
-        if (v == null) {
+        Log.e("day", "getview"+dataDetailsArrayList.get(position).getDate());
+        if (v == null ) {
             v = inflater.inflate(R.layout.inflate_list_item, null);
             holder = new Holder();
             holder.tvPersonName = (TextView) v.findViewById(R.id.tvPersonName);
             holder.tvPersonPrice=(TextView) v.findViewById(R.id.tvPersonPrice);
             holder.ivEditPesonDetail=(ImageView)v.findViewById(R.id.ivEditPesonDetail);
             holder.ivDeletePerson=(ImageView)v.findViewById(R.id.ivDeletePerson);
-            holder.setMoney = (TextView) v.findViewById(R.id.setMoney);
-            holder.startDate=(TextView) v.findViewById(R.id.startDate);
-            holder.endDate=(TextView) v.findViewById(R.id.endDate);
 
             v.setTag(holder);
         } else {
@@ -83,16 +77,18 @@ public class DataDetailsAdapter extends BaseAdapter {
             Log.d("ee",dataDetailsArrayList.get(position).getName());
             holder.tvPersonName.setTextColor(Color.rgb(55, 255, 55));
         }
-        if(position == 0 && dataDetailsArrayList.get(position).isInOrOut() == false)
+        if(dataDetailsArrayList.get(position).isInOrOut() == false)
             holder.tvPersonName.setTextColor(Color.rgb(0, 0, 0));
+        ///
+
 
         holder.tvPersonPrice.setText(""+dataDetailsArrayList.get(position).getPrice());
         holder.ivEditPesonDetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Log.e(LOG_TAG, "DataDetailsAdapter.getView.ivEditPesonDetail.onClick");
-                //DataDetailsModel dataToEditModel= DataList.getInstance().searchData(dataDetailsArrayList.get(position).getId());
-                //DataList.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position);
+                //DataDetailsModel dataToEditModel= DataList.getInstance().searchData(dataDetailsArrayList.get(position).getId()); //추가
+                //DataList.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position); // 추가
                 DataDetailsModel dataToEditModel= MainActivity.getInstance().searchData(dataDetailsArrayList.get(position).getId());
                 MainActivity.getInstance().addOrUpdatePersonDetailsDialog22(dataToEditModel,position);
             }
@@ -109,7 +105,7 @@ public class DataDetailsAdapter extends BaseAdapter {
         return v;
     }
     class Holder {
-        TextView tvPersonName, tvPersonPrice, setMoney, startDate, endDate;;
+        TextView tvPersonName, tvPersonPrice;
         ImageView ivDeletePerson, ivEditPesonDetail;
     }
     public static void ShowConfirmDialog(Context context,final int personId,final int position)
@@ -122,7 +118,9 @@ public class DataDetailsAdapter extends BaseAdapter {
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog,int id) {
                         //DataList.getInstance().deleteData(personId,position);
-                        MainActivity.getInstance().deleteData(personId,position);
+                        //DataList.getInstance().deleteData(personId,position);
+                        MainActivity.getInstance().deleteData(personId,position); // 추가
+//
                     }
                 })
                 .setNegativeButton("No", new DialogInterface.OnClickListener() {

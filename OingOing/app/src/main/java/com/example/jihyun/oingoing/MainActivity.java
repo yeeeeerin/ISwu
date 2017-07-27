@@ -1,7 +1,5 @@
 package com.example.jihyun.oingoing;
 
-import android.Manifest;
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -16,8 +14,6 @@ import android.media.Image;
 import android.os.Build;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -28,7 +24,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -58,11 +53,13 @@ import static android.R.id.progress;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    ArrayAdapter adapter;
-    ProgressBar ProgressBar;
     final static String LOG_TAG = "myLogs";
-    private static int id = 1;
     FloatingActionButton fab1, fab2, fab3, fab4;
+    ProgressBar ProgressBar;
+    ArrayAdapter adapter;
+    //------------db-------------
+
+    public static int id = 1;
     private Realm myRealm;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
@@ -74,9 +71,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-M-d", Locale.KOREA);
 
+///////////////
+    //선미 수정
+    private RealmResults<DailyMoneyModel> moneyModels;
+    private RealmResults<DataDetailsModel> detailsModels;
+    private int moneySet;
+    DailyMoneySet dailyMoneySet=new DailyMoneySet();
+
+
+    //----------------------------
+
     private TextView monthText;
     private GridView monthView;
-    //사용한 금액(데이터베이스?)
+    //사용한 금액
     private ListView dailyAmountView;
     private MonthAdapter adapter1;
     /* private DailyAdapter adapter2;*/
@@ -87,24 +94,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        PermissionRequester.Builder requester = new PermissionRequester.Builder(this);
-        requester.create().request( Manifest.permission.RECEIVE_SMS, 10000, new PermissionRequester.OnClickDenyButtonListener()
-        { @Override public void onClick(Activity activity) {
-            Toast.makeText(MainActivity.this, "권한을 얻지 못했습니다.", Toast.LENGTH_SHORT).show(); } } );
+        /////db///////////
 
-        myRealm = Realm.getInstance(MainActivity.this);
+        SetDate="2017-7-19";
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
-        dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-
-
-        getAllWidgets();
+        myRealm = Realm.getInstance(MainActivity.this);
         instance = this;
         setPersonDetailsAdapter();
 
         getAllUsers();//0528
+
+        ///////////////
+        getAllWidgets();
+
         bindWidgetsWithEvents();
 
         ImageView addbtn=(ImageView) findViewById(R.id.addBtn);
@@ -122,11 +124,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         viewList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Intent intent = new Intent(getApplicationContext(),DataList.class);
-                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //getApplicationContext().startActivity(intent);
+
             }
         });
+
+        getDailyMoney();
 
 
 //추가
@@ -159,11 +161,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-
+//0627 데이터리스트불러오기
         fab4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Toast.makeText(getApplicationContext(), dataDetailsModelArrayList.get(0).getDate(), Toast.LENGTH_LONG).show();
+                //dataListDialog( , ); //날짜에 해당하는 리스트뷰 받아오기
+
             }
         });
 
@@ -186,7 +189,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         adapter1 = new MonthAdapter(this);
 
         /*adapter2 = new DailyAdapter(this);
-
         adapter2.addAdapter(new accountItem("점심", 7000, R.drawable.stamp));
         adapter2.addAdapter(new accountItem("카페", 5900, R.drawable.stamp));*/
 
@@ -194,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       /*  dailyAmountView.setAdapter(adapter2);*/
         monthText.setText(adapter1.getCurrentYear() + "년" + adapter1.getCurrentMonth() + "월");
 
+        // 달력창 클릭시
         monthView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -223,12 +226,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+    // 요일 클릭시 대화창
     public void showCostom(Context context, int position){
 
         Dialog dialog=new Dialog(context);
         // dialog화면의 정보를 lay_customdialog으로
         dialog.setContentView(R.layout.lay_customdialog);
-        int result=0;
+
+        StringBuffer date=new StringBuffer();
+
 
         TextView txt_year =(TextView)dialog.findViewById(R.id.txt_year);
         TextView txt_month=(TextView)dialog.findViewById(R.id.txt_month);
@@ -243,85 +249,108 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String dmoney="";
         String rmoney="";
 
+        //선택된 날짜
+        SetDate = year+"-"+month+"-"+day;
+
+
+//        //선미 추가
+        // moneyset계산
+        for(int i=0;i<moneyModels.size();i++) {
+            // db에서 날짜 불러오기
+            getDailyMoney();
+            String startDay = moneyModels.get(i).getstartDate().toString();
+            String endDay = moneyModels.get(i).getEndDate().toString();
+
+            try {
+                // String을 Date로 변환
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+                Date startDate = formatter.parse(startDay);
+                Date endDate = formatter.parse(endDay);
+                Date currentDate=formatter.parse(SetDate);
+
+                // 시간차이를 시간,분,초를 곱한 값으로 나누면 하루 단위가 나옴
+                long compareEnd = endDate.getTime() - currentDate.getTime();
+                long compEndDay = compareEnd / (24 * 60 * 60 * 1000);
+
+                long compareBeg = currentDate.getTime() - startDate.getTime();
+                long compBegDay = compareBeg / (24 * 60 * 60 * 1000);
+
+                // currentdate가 startdate와 enddate 사이 일경우
+                if (compBegDay >= 0 && compEndDay >= 0){
+                    // 선택된 날짜와 detailDB의 date가 같으면
+                    for(int j=0;j<detailsModels.size();j++){
+                        if(SetDate==detailsModels.get(j).getDate()){
+                            // 수입일 경우
+                            if(detailsModels.get(j).isInOrOut()==false){
+                                moneySet=moneyModels.get(i).getMoney_set()+detailsModels.get(j).getPrice();
+                            }
+                            // 지출일경우
+                            else{
+                                moneySet=moneyModels.get(i).getMoney_set()-detailsModels.get(j).getPrice();
+                            }
+                            moneyModels.get(i).setMoney_set(moneySet);
+                            dmoney=String.valueOf(moneyModels.get(i));
+                        }
+                    }// end for
+                    Toast.makeText(getApplicationContext(),dmoney,Toast.LENGTH_LONG).show();
+
+                }// end if
+
+
+            }// end try
+            catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+
+
+        /*
+        if (Integer.parseInt(month) < 10){
+            month = "0"+month;
+        }
+        if(Integer.parseInt(day) < 10)
+            day = "0"+day;
+*/
+
         txt_year.setText(year);
         txt_month.setText(month);
         txt_day.setText(day);
-        String datee=year+"-"+month+"-"+ day;
-
-        dataDetailsAdapter.setDate(datee);
-
-        //날짜별로 일일설정액 불러오기
-        int number=0;
-        for(int i=0; i<dataDetailsModelArrayList.size();i++) {
-
-            while(dataDetailsModelArrayList.get(i).getstartDate()!=null) {
-                if (datee.equals(dataDetailsModelArrayList.get(i).getstartDate().toString())){
-                    number = i;
-
-                    dmoney = String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set());}
-                break;
-            }
-        }
-        dailyMoney.setText(dmoney);
-        int number2=0;
-        //남은금액 계산
-        for(int i=0;i<dataDetailsModelArrayList.size();i++){
-            while(dataDetailsModelArrayList.get(i).getPrice()!=0) {
-                while(dataDetailsModelArrayList.get(i).isInOrOut()==true) {
-                    if (datee.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
-                    {
-                        number2 = i;
-                        result += dataDetailsModelArrayList.get(number2).getPrice();
-                    }
-                    break;
-                }
-                break;
-            }
-        }
-        if(dmoney!="") {
-            rmoney = String.valueOf(Integer.valueOf(dmoney) - result);
-            restMoney.setText(rmoney);
-            if (Integer.valueOf(rmoney) < 0) {
-                NotificationSomethings();
-            }
-        }else{
-        }
-        dialog.show();
 
 
+
+        Log.e("day", year+"-"+month+"-"+day);
+
+
+        getAllUsers();
+
+        // dialog.show();
     }
-    //일일설정액db에서 데이터 가져오기
+
+
+    //일일설정약 db에서 데이터 가져오기
     private void getDailyMoney(){
+
         try {
             Date d = new SimpleDateFormat("yyyy-M-d").parse(SetDate);
+            Log.e("ee", d.toString()+"날짜 date변");
+
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        //RealmResults<DailyMoneyModel> results = myRealm.where(DailyMoneyModel.class).findAll();
-        //Log.e("ee", results.get(0).getEndDate());
+
+        moneyModels = myRealm.where(DailyMoneyModel.class).findAll();
+        detailsModels = myRealm.where(DataDetailsModel.class).findAll();
+
+        //Log.e("ee", moneyModels.get(moneyModels.size()-1).getEndDate());
 
     }
-    //푸시알림 설정
-    public void NotificationSomethings(){
-        Resources res=getResources();
-        NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
-        builder.setContentTitle("일일설정액 초과!")
-                .setContentText("그만 써!")
-                .setTicker("일일 설정액 초과!")
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(BitmapFactory.decodeResource(res,R.mipmap.ic_launcher))
-                .setAutoCancel(true)
-                .setWhen(System.currentTimeMillis())
-                .setDefaults(Notification.DEFAULT_ALL);
-        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.LOLLIPOP){
-            builder.setCategory(Notification.CATEGORY_MESSAGE)
-                    .setPriority(Notification.PRIORITY_HIGH)
-                    .setVisibility(Notification.VISIBILITY_PUBLIC);
-        }
 
-        NotificationManager nm=(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.notify(20,builder.build());
-    }
+
+
+    ///--------------------db관련 함수들-----------------------
+    ///-----------------------------------------------------
 
     public static MainActivity getInstance() {
         Log.e(LOG_TAG, "DataList.getInstance");
@@ -331,10 +360,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void setPersonDetailsAdapter() {
         Log.e(LOG_TAG, "DataList.setPersonDetailsAdapter");
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
-        dataDetailsAdapter.setDate(transFormat.format(new Date()));
-
         lvPersonNameList.setAdapter(dataDetailsAdapter);//데이터 리스트 보여주는 함수
     }
+
+    //0528
+    //데이터 리스트 가져오는 함수
+    private void getAllUsers() {
+        Log.e(LOG_TAG, "DataList.getAllUsers");
+        dataDetailsModelArrayList.clear();
+        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).equalTo("date",SetDate).findAll();
+        myRealm.beginTransaction();
+        for (int i = 0; i < results.size(); i++) {
+            dataDetailsModelArrayList.add(results.get(i));
+        }
+        if(results.size()>0)
+            id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
+        myRealm.commitTransaction();
+        dataDetailsAdapter.notifyDataSetChanged();
+    }
+
 
     public void deleteData(int personId, int position) {
         Log.e(LOG_TAG, "DataList.deletePerson");
@@ -352,60 +396,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.beginTransaction();
         myRealm.commitTransaction();
         return results.get(0);
-    }
-
-    private void ToggleFab() {
-        // 버튼들이 보여지고있는 상태인 경우 숨겨줍니다.
-        if(fab1.getVisibility() == View.VISIBLE) {
-            fab1.hide();
-            fab2.hide();
-            fab4.hide();
-            fab1.animate().translationY(0);
-            fab2.animate().translationY(0);
-            fab4.animate().translationY(0);
-        }
-        // 버튼들이 숨겨져있는 상태인 경우 위로 올라오면서 보여줍니다.
-        else {
-            // 중심이 되는 버튼의 높이 + 마진 만큼 거리를 계산합니다.
-            int dy = fab3.getHeight() + 20;
-            fab1.show();
-            fab2.show();
-            fab4.show();
-            // 계산된 거리만큼 이동하는 애니메이션을 입력합니다.
-            fab4.animate().translationY(-dy*3);
-            fab1.animate().translationY(-dy*2);
-            fab2.animate().translationY(-dy);
-        }
-    }
-    //동그라미버튼
-    private void getAllWidgets() {
-        Log.e(LOG_TAG, "MainActivity.getAllWidgets");
-        //fabAddPerson = (FloatingActionButton) findViewById(R.id.fab);
-        fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
-        lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
-    }
-    private void bindWidgetsWithEvents() {
-        Log.e(LOG_TAG, "MainActivity.bindWidgetsWithEvents");
-        //fabAddPerson.setOnClickListener(this);
-        fab2.setOnClickListener(this);
-
-    }
-
-    //수정
-    @Override
-    public void onClick(View v) {
-//        switch (v.getId()) {
-//            case R.id.fab_2:
-//                addOrUpdatePersonDetailsDialog(null,-1);
-//                break;
-//            case R.id.fab_1:
-//                Toast.makeText(MainActivity.this, "영수증인식", Toast.LENGTH_SHORT).show();
-//                //Intent intent = new Intent(getApplicationContext(), UpdateSpend.class);
-//                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                //getApplicationContext().startActivity(intent);
-//                break;
-//
-        //       }
     }
 
 
@@ -429,6 +419,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
         mainDialog.setView(promptsView);//알림창 지정된 레이아웃을 띄운다
         mainDialog.setTitle("수입 입력");
+
+
 
         //이 변수들은 income_dialog.xml에서 가져온 아이들, 즉 한 엑티비티에 뷰를 두개 가져온 것이다
         //위에서 View promptsViewView이 문장을 통해 뷰를 생성했기 때문에 사용이 가능하다
@@ -493,11 +485,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.beginTransaction();
 
         DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-
-        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()+1); //id+남아있는리스트개수를 해줘야해
-
+        dataDetailsModel.setId(id); //id+남아있는리스트개수를 해줘야해
         dataDetailsModel.setName(model.getName());
-
         dataDetailsModel.setPrice(model.getPrice());
         dataDetailsModel.setDate(model.getDate());
         dataDetailsModel.setInOrOut(false); //수입
@@ -506,7 +495,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dataDetailsAdapter.notifyDataSetChanged();
         id++;
     }
-
     //데이터 업데이트 함(수정)
     public void updatePersonDetails(DataDetailsModel model,int position,int personID) {
         Log.e(LOG_TAG, "MainActivity.updatePersonDetails");
@@ -521,25 +509,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-    //0528
-    //데이터 리스트 가져오는 함수
-    private void getAllUsers() {
-        Log.e(LOG_TAG, "DataList.getAllUsers");
-        RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
-        myRealm.beginTransaction();
 
-        for (int i = 0; i < results.size(); i++) {
-            dataDetailsModelArrayList.add(results.get(i));
-        }
-        if(results.size()>0)
-            id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
-        myRealm.commitTransaction();
-        dataDetailsAdapter.notifyDataSetChanged();
 
-    }
 
+    ////update를 위한것
     public void addOrUpdatePersonDetailsDialog22(final DataDetailsModel model,final int position) {
-        //subdialog
+//subdialog
         Log.e(LOG_TAG, "DataList.addOrUpdatePersonDetailsDialog");
         subDialog = new AlertDialog.Builder(MainActivity.this)
                 .setMessage("모두 입력해주세요")
@@ -550,7 +525,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         dlg2.cancel();
                     }
                 });
-        //maindialog
+//maindialog
         LayoutInflater li = LayoutInflater.from(MainActivity.this);
         View promptsView = li.inflate(R.layout.income_dialog, null);
         AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);
@@ -593,34 +568,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-    private void addDataToRealm22(DataDetailsModel model) {
-        Log.e(LOG_TAG, "DataList.addDataToRealm");
 
 
-        myRealm.beginTransaction();
 
-        DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()); //id+남아있는리스트개수를 해줘야해
-        dataDetailsModel.setName(model.getName());
-        dataDetailsModel.setPrice(model.getPrice());
-        dataDetailsModel.setDate(model.getDate());
-        dataDetailsModel.setMoney_set(model.getMoney_set());
-        dataDetailsModelArrayList.add(dataDetailsModel);
-        myRealm.commitTransaction();
-        dataDetailsAdapter.notifyDataSetChanged();
-        id++;
-    }
 
-    public void updatePersonDetails22(DataDetailsModel model,int position,int personID) {
-        Log.e(LOG_TAG, "DataList.updatePersonDetails");
-        DataDetailsModel editPersonDetails = myRealm.where(DataDetailsModel.class).equalTo("id", personID).findFirst();
-        myRealm.beginTransaction();
-        editPersonDetails.setName(model.getName());
-        editPersonDetails.setPrice(model.getPrice());
-        myRealm.commitTransaction();
-        dataDetailsModelArrayList.set(position, editPersonDetails);
-        dataDetailsAdapter.notifyDataSetChanged();
-    }
+
+
 
     // db삭제
     // 앱이 종료되었을  onCreate와 반대로 액티비티가 종료 될 때 onDestroy가 나타난다
@@ -637,6 +590,112 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
+
+
+
+
+
+
+
+
+    ///--------------------db함수 끝-------------------
+
+    //푸시알림 설정
+    public void NotificationSomethings(){
+        Resources res=getResources();
+        NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
+        builder.setContentTitle("일일설정액 초과!")
+                .setContentText("그만 써!")
+                .setTicker("일일 설정액 초과!")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setLargeIcon(BitmapFactory.decodeResource(res,R.mipmap.ic_launcher))
+                .setAutoCancel(true)
+                .setWhen(System.currentTimeMillis())
+                .setDefaults(Notification.DEFAULT_ALL);
+        if(android.os.Build.VERSION.SDK_INT>= Build.VERSION_CODES.LOLLIPOP){
+            builder.setCategory(Notification.CATEGORY_MESSAGE)
+                    .setPriority(Notification.PRIORITY_HIGH)
+                    .setVisibility(Notification.VISIBILITY_PUBLIC);
+        }
+
+        NotificationManager nm=(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nm.notify(20,builder.build());
+    }
+
+
+
+    private void ToggleFab() {
+        // 버튼들이 보여지고있는 상태인 경우 숨겨줍니다.
+        if(fab1.getVisibility() == View.VISIBLE) {
+            fab1.hide();
+            fab2.hide();
+            fab4.hide();
+            fab1.animate().translationY(0);
+            fab2.animate().translationY(0);
+            fab4.animate().translationY(0);
+        }
+        // 버튼들이 숨겨져있는 상태인 경우 위로 올라오면서 보여줍니다.
+        else {
+            // 중심이 되는 버튼의 높이 + 마진 만큼 거리를 계산합니다.
+            int dy = fab3.getHeight() + 20;
+            fab1.show();
+            fab2.show();
+            fab4.show();
+            // 계산된 거리만큼 이동하는 애니메이션을 입력합니다.
+            fab4.animate().translationY(-dy*3);
+            fab1.animate().translationY(-dy*2);
+            fab2.animate().translationY(-dy);
+        }
+    }
+    //동그라미버튼
+    private void getAllWidgets() {
+        Log.e(LOG_TAG, "MainActivity.getAllWidgets");
+        //fabAddPerson = (FloatingActionButton) findViewById(R.id.fab);
+        fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
+        // lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
+    }
+    private void bindWidgetsWithEvents() {
+        Log.e(LOG_TAG, "MainActivity.bindWidgetsWithEvents");
+        //fabAddPerson.setOnClickListener(this);
+        fab2.setOnClickListener(this);
+
+    }
+
+    //수정
+    @Override
+    public void onClick(View v) {
+//        switch (v.getId()) {
+//            case R.id.fab_2:
+//                addOrUpdatePersonDetailsDialog(null,-1);
+//                break;
+//            case R.id.fab_1:
+//                Toast.makeText(MainActivity.this, "영수증인식", Toast.LENGTH_SHORT).show();
+//                //Intent intent = new Intent(getApplicationContext(), UpdateSpend.class);
+//                //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                //getApplicationContext().startActivity(intent);
+//                break;
+//
+        //       }
+    }
+
+    /*
+    //0629 데이터 불러오는 다이얼로그
+    public void dataListDialog(final DataDetailsModel model, final int date){
+        LayoutInflater li = LayoutInflater.from(MainActivity.this);//뷰를 띄워주는 역할
+        View promptsView = li.inflate(R.layout.inflate_list_item, null);//뷰 생성 : 여기서 데이터베이스 리스트 받아오면 될꺼같은데 안됨ㅠ
+        AlertDialog.Builder dataDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
+        //myRealm = Realm.getInstance(DataList.getInstance());
+        //final DataDetailsModel[] items = dataDetailsModelArrayList.toArray(new DataDetailsModel[dataDetailsModelArrayList.size()]);
+        //ArrayAdapter<DataDetailsModel> ad=new ArrayAdapter<DataDetailsModel>(this,android.R.layout.simple_list_item_1, items);
+        //dataDialog.setView(dataDetailsModelArrayList.get(date).getDate());
+        dataDialog.setTitle(dataDetailsModelArrayList.get(date).getDate().toString()+""); //데이터베이스 아이디로 날짜 받아오기
+        dataDialog.setMessage(dataDetailsModelArrayList.get(date).getName().toString() + " " + dataDetailsModelArrayList.get(date).getPrice()); //데이터베이스 아이디로 날짜 받아오기
+        //lvPersonNameList.setAdapter(ad);
+        final AlertDialog dialog = dataDialog.create();//다이얼 로그 객체 얻어오기
+        dialog.show();// 다이얼로그 보여주기
+    }
+*/
 
 
 }

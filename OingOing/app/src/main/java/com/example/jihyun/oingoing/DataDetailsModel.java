@@ -19,9 +19,8 @@ public class DataDetailsModel extends RealmObject {
     private int price;
     private String date;
     private int money_set = 0; //일일설정액
-    private String startDate;
-    private String endDate;
     private boolean InOrOut = false; //false 수입 true 지출
+
 
 
     public boolean isInOrOut() { return InOrOut; }
@@ -52,18 +51,4 @@ public class DataDetailsModel extends RealmObject {
     public void setDate(String date) { this.date = date; }
 
 
-
-    public String getEndDate() {
-        return endDate;
-    }
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
-
-    public String getstartDate() {
-        return startDate;
-    }
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
 }

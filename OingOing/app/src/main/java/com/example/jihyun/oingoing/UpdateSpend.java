@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -59,12 +60,12 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
     String mCurrentPhotoPath;
 
     //데이터베이스부분
-    private static int id=1;
+    //private static int id=;
     private Realm myRealm;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
     private DataDetailsAdapter dataDetailsAdapter;
     private AlertDialog.Builder subDialog;
-    SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-M-d");
+    SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-M-d", Locale.KOREA);
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,7 +109,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     //데이터베이스에 추가
                     myRealm.beginTransaction();
                     DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-                    dataDetailsModel.setId(id+dataDetailsModelArrayList.size());
+                    dataDetailsModel.setId(MainActivity.id);
                     dataDetailsModel.setName(selItem);
                     dataDetailsModel.setPrice(money);
                     dataDetailsModel.setDate(transFormat.format(new Date()));
@@ -116,7 +117,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     dataDetailsModelArrayList.add(dataDetailsModel);
                     myRealm.commitTransaction();
                     dataDetailsAdapter.notifyDataSetChanged();
-                    id++;
+                    MainActivity.id++;
 
                     //메인으로 돌아가기
                     Intent intent = new Intent(getApplicationContext(),//현재화면의
@@ -176,6 +177,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
     }
 
     //데이터베이스의 리스트를 저장
+    /*
     private void getAllUsers() {
         RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
         myRealm.beginTransaction();
@@ -183,11 +185,11 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
             dataDetailsModelArrayList.add(results.get(i));
         }
         if(results.size()>0)
-            id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
+            MainActivity.id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
     }
-
+*/
     public void onClick(View v) {
 
         switch (v.getId()){
