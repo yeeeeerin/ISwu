@@ -72,7 +72,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
 
         myRealm = Realm.getInstance(UpdateSpend.this);
         dataDetailsAdapter = new DataDetailsAdapter(UpdateSpend.this, dataDetailsModelArrayList);
-        getAllUsers(); // 리스트에 데이터베이스의 모든 데이터 넣기
+        //getAllUsers(); // 리스트에 데이터베이스의 모든 데이터 넣기
 
         //입력 다 안했을 때 뜨는 다이얼로그
         subDialog = new AlertDialog.Builder(UpdateSpend.this)

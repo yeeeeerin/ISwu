@@ -86,7 +86,6 @@ public class DataDetailsAdapter extends BaseAdapter {
         if(position == 0 && dataDetailsArrayList.get(position).isInOrOut() == false)
             holder.tvPersonName.setTextColor(Color.rgb(0, 0, 0));
 
-
         holder.tvPersonPrice.setText(""+dataDetailsArrayList.get(position).getPrice());
         holder.ivEditPesonDetail.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,7 +94,7 @@ public class DataDetailsAdapter extends BaseAdapter {
                 //DataDetailsModel dataToEditModel= DataList.getInstance().searchData(dataDetailsArrayList.get(position).getId());
                 //DataList.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position);
                 DataDetailsModel dataToEditModel= MainActivity.getInstance().searchData(dataDetailsArrayList.get(position).getId());
-                MainActivity.getInstance().addOrUpdatePersonDetailsDialog(dataToEditModel,position);
+                MainActivity.getInstance().addOrUpdatePersonDetailsDialog22(dataToEditModel,position);
             }
         });
         holder.ivDeletePerson.setOnClickListener(new View.OnClickListener() {

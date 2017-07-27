@@ -1,5 +1,7 @@
 package com.example.jihyun.oingoing;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -43,9 +45,11 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -68,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     String SetDate; // 선택 날짜 설정
 
-    SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-M-d");
+    SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-M-d", Locale.KOREA);
 
     private TextView monthText;
     private GridView monthView;
@@ -82,6 +86,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d(LOG_TAG, "MainActivity.OnCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        PermissionRequester.Builder requester = new PermissionRequester.Builder(this);
+        requester.create().request( Manifest.permission.RECEIVE_SMS, 10000, new PermissionRequester.OnClickDenyButtonListener()
+        { @Override public void onClick(Activity activity) {
+            Toast.makeText(MainActivity.this, "권한을 얻지 못했습니다.", Toast.LENGTH_SHORT).show(); } } );
+
         myRealm = Realm.getInstance(MainActivity.this);
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
@@ -117,6 +127,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //getApplicationContext().startActivity(intent);
             }
         });
+
+
 //추가
         fab1 = (FloatingActionButton)findViewById(R.id.fab_1);
         fab2 = (FloatingActionButton)findViewById(R.id.fab_2);
@@ -227,6 +239,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String year=String.valueOf(adapter1.getCurrentYear());
         String month=String.valueOf(adapter1.getCurrentMonth());
         String day=String.valueOf(adapter1.items[position].date);
+
         String dmoney="";
         String rmoney="";
 
@@ -245,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (datee.equals(dataDetailsModelArrayList.get(i).getstartDate().toString())){
                     number = i;
 
-                dmoney = String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set());}
+                    dmoney = String.valueOf(dataDetailsModelArrayList.get(number).getMoney_set());}
                 break;
             }
         }
@@ -256,10 +269,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             while(dataDetailsModelArrayList.get(i).getPrice()!=0) {
                 while(dataDetailsModelArrayList.get(i).isInOrOut()==true) {
                     if (datee.equals(dataDetailsModelArrayList.get(i).getDate().toString()))
-                     {
+                    {
                         number2 = i;
-                    result += dataDetailsModelArrayList.get(number2).getPrice();
-                }
+                        result += dataDetailsModelArrayList.get(number2).getPrice();
+                    }
                     break;
                 }
                 break;
@@ -277,13 +290,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+    //일일설정액db에서 데이터 가져오기
+    private void getDailyMoney(){
+        try {
+            Date d = new SimpleDateFormat("yyyy-M-d").parse(SetDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        //RealmResults<DailyMoneyModel> results = myRealm.where(DailyMoneyModel.class).findAll();
+        //Log.e("ee", results.get(0).getEndDate());
+
+    }
     //푸시알림 설정
     public void NotificationSomethings(){
         Resources res=getResources();
         NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
-        builder.setContentTitle("상태바 드래그시 보이는 타이틀")
-                .setContentText("상태바 드래그시 보이는 서브 타이틀")
-                .setTicker("상태바 한줄 메시지")
+        builder.setContentTitle("일일설정액 초과!")
+                .setContentText("그만 써!")
+                .setTicker("일일 설정액 초과!")
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(BitmapFactory.decodeResource(res,R.mipmap.ic_launcher))
                 .setAutoCancel(true)
@@ -308,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(LOG_TAG, "DataList.setPersonDetailsAdapter");
         dataDetailsAdapter = new DataDetailsAdapter(MainActivity.this, dataDetailsModelArrayList);
         dataDetailsAdapter.setDate(transFormat.format(new Date()));
+
         lvPersonNameList.setAdapter(dataDetailsAdapter);//데이터 리스트 보여주는 함수
     }
 
@@ -502,6 +527,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.e(LOG_TAG, "DataList.getAllUsers");
         RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).findAll();
         myRealm.beginTransaction();
+
         for (int i = 0; i < results.size(); i++) {
             dataDetailsModelArrayList.add(results.get(i));
         }
@@ -510,6 +536,90 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
 
+    }
+
+    public void addOrUpdatePersonDetailsDialog22(final DataDetailsModel model,final int position) {
+        //subdialog
+        Log.e(LOG_TAG, "DataList.addOrUpdatePersonDetailsDialog");
+        subDialog = new AlertDialog.Builder(MainActivity.this)
+                .setMessage("모두 입력해주세요")
+                .setCancelable(false)
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dlg2, int which) {
+                        dlg2.cancel();
+                    }
+                });
+        //maindialog
+        LayoutInflater li = LayoutInflater.from(MainActivity.this);
+        View promptsView = li.inflate(R.layout.income_dialog, null);
+        AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);
+        mainDialog.setView(promptsView);
+        final EditText etAddPersonName = (EditText) promptsView.findViewById(R.id.setCategory);
+        final EditText etAddPersonAge = (EditText) promptsView.findViewById(R.id.setIncome);
+        if (model != null) {
+            etAddPersonName.setText(model.getName());
+            etAddPersonAge.setText(String.valueOf(model.getPrice()));
+        }
+        mainDialog.setCancelable(false)
+                .setPositiveButton("Ok", null)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog dialog = mainDialog.create();
+        dialog.show();
+        Button b = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!Utility.isBlankField(etAddPersonName) && !Utility.isBlankField(etAddPersonAge)) {
+                    DataDetailsModel dataDetailsModel = new DataDetailsModel();
+                    dataDetailsModel.setName(etAddPersonName.getText().toString());
+                    dataDetailsModel.setPrice(Integer.parseInt(etAddPersonAge.getText().toString()));
+                    //dataDetailsModel.setDate(new Date());
+                    dataDetailsModel.setMoney_set(model.getMoney_set());
+                    if (model == null)
+                        Log.d("ee","nono");
+                        // addDataToRealm(dataDetailsModel);
+                    else
+                        updatePersonDetails(dataDetailsModel, position, model.getId());
+                    dialog.cancel();
+                } else {
+                    subDialog.show();
+                }
+            }
+        });
+    }
+    private void addDataToRealm22(DataDetailsModel model) {
+        Log.e(LOG_TAG, "DataList.addDataToRealm");
+
+
+        myRealm.beginTransaction();
+
+        DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
+        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()); //id+남아있는리스트개수를 해줘야해
+        dataDetailsModel.setName(model.getName());
+        dataDetailsModel.setPrice(model.getPrice());
+        dataDetailsModel.setDate(model.getDate());
+        dataDetailsModel.setMoney_set(model.getMoney_set());
+        dataDetailsModelArrayList.add(dataDetailsModel);
+        myRealm.commitTransaction();
+        dataDetailsAdapter.notifyDataSetChanged();
+        id++;
+    }
+
+    public void updatePersonDetails22(DataDetailsModel model,int position,int personID) {
+        Log.e(LOG_TAG, "DataList.updatePersonDetails");
+        DataDetailsModel editPersonDetails = myRealm.where(DataDetailsModel.class).equalTo("id", personID).findFirst();
+        myRealm.beginTransaction();
+        editPersonDetails.setName(model.getName());
+        editPersonDetails.setPrice(model.getPrice());
+        myRealm.commitTransaction();
+        dataDetailsModelArrayList.set(position, editPersonDetails);
+        dataDetailsAdapter.notifyDataSetChanged();
     }
 
     // db삭제
