@@ -199,6 +199,7 @@ public class MonthAdapter extends BaseAdapter {
 
             view.setLayoutParams(params);
         view.setDate(items[position].date);
+
         return view;
     }
 

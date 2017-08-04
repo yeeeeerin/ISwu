@@ -96,7 +96,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         /////db///////////
 
-        SetDate="2017-7-19";
+        Date dd=new Date();
+        SetDate=transFormat.format(dd);;
         lvPersonNameList = (ListView) findViewById(R.id.lvPersonNameList);
         myRealm = Realm.getInstance(MainActivity.this);
         instance = this;
