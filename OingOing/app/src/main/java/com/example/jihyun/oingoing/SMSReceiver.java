@@ -112,6 +112,9 @@ public class SMSReceiver extends BroadcastReceiver {
                 //날짜 : content[5], 0번째 07/07 1번째 13:45 이런형식(" "으로구분)
                 Toast.makeText(context, "SMS From:" + sender + "\n사용금액: " + a+"\n사용장소: " + b, Toast.LENGTH_LONG).show();
             }
+            //우리
+            //기업
+
         }
     }
 }

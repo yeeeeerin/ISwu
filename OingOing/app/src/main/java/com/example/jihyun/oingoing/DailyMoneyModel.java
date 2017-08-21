@@ -1,5 +1,7 @@
 package com.example.jihyun.oingoing;
 
+import java.util.Date;
+
 import io.realm.RealmObject;
 
 /**
@@ -9,24 +11,24 @@ import io.realm.RealmObject;
 public class DailyMoneyModel extends RealmObject{
     private String AimName;
     private int money_set = 0; //일일설정액
-    private String startDate;
-    private String endDate;
+    private Date startDate;
+    private Date endDate;
 
 
     public String getAimName(){return  AimName;}
     public  void setAimName(String AimName){this.AimName = AimName;}
 
-    public String getEndDate() {
+    public Date getEndDate() {
         return endDate;
     }
-    public void setEndDate(String endDate) {
+    public void setEndDate(Date endDate) {
         this.endDate = endDate;
     }
 
-    public String getstartDate() {
+    public Date getstartDate() {
         return startDate;
     }
-    public void setStartDate(String startDate) {
+    public void setStartDate(Date startDate) {
         this.startDate = startDate;
     }
 

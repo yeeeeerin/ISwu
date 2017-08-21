@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int moneySet;
     DailyMoneySet dailyMoneySet=new DailyMoneySet();
 
-
+    private int money_sum=0; //추가
     //----------------------------
 
     private TextView monthText;
@@ -253,60 +253,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //선택된 날짜
         SetDate = year+"-"+month+"-"+day;
 
-
-//        //선미 추가
-        // moneyset계산
-        for(int i=0;i<moneyModels.size();i++) {
-            // db에서 날짜 불러오기
-            getDailyMoney();
-            String startDay = moneyModels.get(i).getstartDate().toString();
-            String endDay = moneyModels.get(i).getEndDate().toString();
-
-            try {
-                // String을 Date로 변환
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-                Date startDate = formatter.parse(startDay);
-                Date endDate = formatter.parse(endDay);
-                Date currentDate=formatter.parse(SetDate);
-
-                // 시간차이를 시간,분,초를 곱한 값으로 나누면 하루 단위가 나옴
-                long compareEnd = endDate.getTime() - currentDate.getTime();
-                long compEndDay = compareEnd / (24 * 60 * 60 * 1000);
-
-                long compareBeg = currentDate.getTime() - startDate.getTime();
-                long compBegDay = compareBeg / (24 * 60 * 60 * 1000);
-
-                // currentdate가 startdate와 enddate 사이 일경우
-                if (compBegDay >= 0 && compEndDay >= 0){
-                    // 선택된 날짜와 detailDB의 date가 같으면
-                    for(int j=0;j<detailsModels.size();j++){
-                        if(SetDate==detailsModels.get(j).getDate()){
-                            // 수입일 경우
-                            if(detailsModels.get(j).isInOrOut()==false){
-                                moneySet=moneyModels.get(i).getMoney_set()+detailsModels.get(j).getPrice();
-                            }
-                            // 지출일경우
-                            else{
-                                moneySet=moneyModels.get(i).getMoney_set()-detailsModels.get(j).getPrice();
-                            }
-                            moneyModels.get(i).setMoney_set(moneySet);
-                            dmoney=String.valueOf(moneyModels.get(i));
-                        }
-                    }// end for
-                    Toast.makeText(getApplicationContext(),dmoney,Toast.LENGTH_LONG).show();
-
-                }// end if
-
-
-            }// end try
-            catch (ParseException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-
-
         /*
         if (Integer.parseInt(month) < 10){
             month = "0"+month;
@@ -325,29 +271,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         getAllUsers();
-
+        getDailyMoney(); //추가
         // dialog.show();
     }
 
 
     //일일설정약 db에서 데이터 가져오기
-    private void getDailyMoney(){
+    private void getDailyMoney() {
 
         try {
             Date d = new SimpleDateFormat("yyyy-M-d").parse(SetDate);
-            Log.e("ee", d.toString()+"날짜 date변");
+            Log.e("ee", d.toString() + "날짜 date변");
 
+            RealmResults<DailyMoneyModel> results = myRealm.where(DailyMoneyModel.class)
+                    .lessThanOrEqualTo("startDate", d)
+                    .greaterThanOrEqualTo("endDate", d)
+                    .findAll();
+            //        Log.e("ee", results.get(results.size()-1).getEndDate());
+            myRealm.beginTransaction();
+
+
+            if (results.size() > 0) {
+                String string = Integer.toString(results.get(0).getMoney_set() - money_sum);
+                Log.e("money", "일일설정액 - 선택한 날짜 " + string);
+                if(Integer.valueOf(string)<0){
+                    NotificationSomethings();
+                }
+            }
+            myRealm.commitTransaction();
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        moneyModels = myRealm.where(DailyMoneyModel.class).findAll();
-        detailsModels = myRealm.where(DataDetailsModel.class).findAll();
-
-        //Log.e("ee", moneyModels.get(moneyModels.size()-1).getEndDate());
-
     }
-
+    //일일설정약 db에서 데이터 가져오기 , 빼기
 
 
     ///--------------------db관련 함수들-----------------------
@@ -378,6 +334,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             id = myRealm.where(DataDetailsModel.class).max("id").intValue() + 1;
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
+
+        money_sum=0;
+        for(int j=0;j<dataDetailsModelArrayList.size();j++){
+            money_sum+=dataDetailsModelArrayList.get(j).getPrice();
+
+        }
+        String string = Integer.toString(money_sum);
+        Log.e("money",string);
     }
 
 
