@@ -10,8 +10,14 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 
 public class MonthAdapter extends BaseAdapter {
@@ -20,6 +26,7 @@ public class MonthAdapter extends BaseAdapter {
     // 하루
     dateitem[] items;
     Calendar calendar;
+    Calendar calendar2;
 
     private int countColumn = 7;
 
@@ -42,7 +49,7 @@ public class MonthAdapter extends BaseAdapter {
     }
 
     // 초기화
-    private void init()  {
+    private void init() {
         items = new dateitem[7 * 6];
 
         Date date = new Date();
@@ -92,7 +99,7 @@ public class MonthAdapter extends BaseAdapter {
 
         curYear = calendar.get(Calendar.YEAR);
         curMonth = calendar.get(Calendar.MONTH);
-        lastDay = getLastDay(curYear,curMonth);
+        lastDay = getLastDay(curYear, curMonth);
 
 
     }
@@ -153,6 +160,51 @@ public class MonthAdapter extends BaseAdapter {
         }
     }
 
+    //일일설정액과 비교하여 클리어했으면 true를 아니면 false
+    private boolean Clear_or_NoneClear(String SetDate) {
+        int price_sum = 0;
+        int money_set = 0;
+        boolean flag_moneysumExist = false;
+        Realm myRealm = Realm.getInstance(context);
+        //moneyset가져오는 부분
+        Date d = null;
+        try {
+            d = new SimpleDateFormat("yyyy-M-d").parse(SetDate);
+            RealmResults<DailyMoneyModel> results_moneyset = myRealm.where(DailyMoneyModel.class)
+                    .lessThanOrEqualTo("startDate", d)
+                    .greaterThanOrEqualTo("endDate", d)
+                    .findAll();
+
+            myRealm.beginTransaction();
+            if (results_moneyset.size() > 0) {
+                flag_moneysumExist = true;
+                money_set = results_moneyset.get(0).getMoney_set();
+            }
+            Log.d("clear2", String.valueOf(money_set));
+            myRealm.commitTransaction();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        //moneyset이 존재하다면 그 날짜에 해당하는 데이터를 가져와 moneyset과 비교
+        if (flag_moneysumExist) {
+            RealmResults<DataDetailsModel> results = myRealm.where(DataDetailsModel.class).equalTo("date", SetDate).findAll();
+            myRealm.beginTransaction();
+            for (int i = 0; i < results.size(); i++) {
+                price_sum += results.get(i).getPrice();
+            }
+            myRealm.commitTransaction();
+            Log.d("clear2", "금액 합산" + String.valueOf(price_sum));
+            if (money_set > price_sum)
+                return true;
+
+        }
+        myRealm.close();
+        //myRealm2.close();
+        return false;
+    }
+
+
+
     @Override
     public int getCount() {
         return 42;
@@ -194,18 +246,36 @@ public class MonthAdapter extends BaseAdapter {
             view.textView.setTextColor(Color.BLACK);
         }
 
+        //클리어 했을 시
+//        if(position>0 && position<32) {
+//            String setDate = getCurrentYear() + "-" + getCurrentMonth() + "-" + position;
+//            if(Clear_or_NoneClear(setDate)==true){
+//                view.textView.setTextColor(Color.GREEN);
+//                Log.d("clear2", setDate);
+//            }
+//        }
+
         // 오늘표시
         if(items[position].date==0) {
             view.setLayoutParams(params);
         }
-        view.setDate(items[position].date);
 
-        Date d=new Date();
-        calendar=Calendar.getInstance();
-        calendar.setTime(d);
-        if(items[position].date==calendar.get(Calendar.DAY_OF_MONTH)){
+        calendar2=Calendar.getInstance();
+
+        //Log.d("clear2", String.valueOf(calendar2));
+
+        if(Integer.valueOf(getCurrentYear())==calendar2.get(Calendar.YEAR)+0&&Integer.valueOf(getCurrentMonth())==calendar2.get(Calendar.MONTH)+1&&items[position].date==calendar2.get(Calendar.DAY_OF_MONTH)){
             view.textView.setTextColor(Color.BLUE);
         }
+
+        view.setDate(items[position].date);
+
+//        Date d=new Date();
+//        calendar=Calendar.getInstance();
+//        calendar.setTime(d);
+//        if(items[position].==calendar.get(Calendar.DAY_OF_MONTH)&&items[position].date==calendar.get(Calendar.DAY_OF_MONTH)){
+//            view.textView.setTextColor(Color.BLUE);
+//        }
 
 
         return view;

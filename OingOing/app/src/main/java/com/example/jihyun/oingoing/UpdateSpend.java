@@ -109,7 +109,7 @@ public class UpdateSpend extends AppCompatActivity implements View.OnClickListen
                     //데이터베이스에 추가
                     myRealm.beginTransaction();
                     DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-                    dataDetailsModel.setId(MainActivity.id);
+                    dataDetailsModel.setId(MainActivity.id+dataDetailsModelArrayList.size());
                     dataDetailsModel.setName(selItem);
                     dataDetailsModel.setPrice(money);
                     dataDetailsModel.setDate(transFormat.format(new Date()));

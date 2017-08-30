@@ -35,6 +35,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TabHost;
 import android.widget.TextView;
@@ -55,11 +57,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     final static String LOG_TAG = "myLogs";
     FloatingActionButton fab1, fab2, fab3, fab4;
-    ProgressBar ProgressBar;
     ArrayAdapter adapter;
     //------------db-------------
 
-    public static int id = 1;
+    public static int id = 0;
     private Realm myRealm;
     private ListView lvPersonNameList;
     private static ArrayList<DataDetailsModel> dataDetailsModelArrayList = new ArrayList<>();
@@ -84,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView monthText;
     private GridView monthView;
     //사용한 금액
-    private ListView dailyAmountView;
+
     private MonthAdapter adapter1;
     /* private DailyAdapter adapter2;*/
 
@@ -144,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ToggleFab();
             }
         });
-
+        //수입
         fab2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -227,6 +228,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
     }
+    //달력에 Clear도장 보여주는 함수
+    private void ClearView(){
+        Log.d("clear", Integer.toString(adapter1.getCurrentYear())+"  "+
+                Integer.toString(adapter1.getCurrentMonth()));
+
+
+    }
+
     // 요일 클릭시 대화창
     public void showCostom(Context context, int position){
 
@@ -335,6 +344,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
 
+        //그 날에 해당하는 돈 가져오는 코드
         money_sum=0;
         for(int j=0;j<dataDetailsModelArrayList.size();j++){
             money_sum+=dataDetailsModelArrayList.get(j).getPrice();
@@ -383,28 +393,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         View promptsView = li.inflate(R.layout.mainincome_dialog, null);//정보를 입력하는 창 연결, 뷰 생성
         AlertDialog.Builder mainDialog = new AlertDialog.Builder(MainActivity.this);//다이얼 로그 생성하기 위한 빌더 얻기
         mainDialog.setView(promptsView);//알림창 지정된 레이아웃을 띄운다
-        mainDialog.setTitle("수입 입력");
-
+        mainDialog.setTitle("기록해요 꿀");
 
 
         //이 변수들은 income_dialog.xml에서 가져온 아이들, 즉 한 엑티비티에 뷰를 두개 가져온 것이다
         //위에서 View promptsViewView이 문장을 통해 뷰를 생성했기 때문에 사용이 가능하다
-        final Spinner etAddCategory = (Spinner) promptsView.findViewById(R.id.setCategory);
+        final EditText etAddCategory = (EditText) promptsView.findViewById(R.id.setCategory);
         final EditText etAddIncome = (EditText) promptsView.findViewById(R.id.setIncome);
+        TextView tv_datee=(TextView)promptsView.findViewById(R.id.tv_datee);
+        tv_datee.setText(SetDate);
 
-        adapter = ArrayAdapter.createFromResource(this,
-                R.array.UISpinner,//배열 가져온다
-                android.R.layout.simple_spinner_item);//어떤형식으로
-        etAddCategory.setAdapter(adapter);
+        final RadioGroup rg=(RadioGroup)promptsView.findViewById(R.id.dialog_rg);
+        int checkedId= rg.getCheckedRadioButtonId();
+        final RadioButton rb1=(RadioButton) rg.findViewById(R.id.dialog_rb_income);
+        final RadioButton rb2=(RadioButton) rg.findViewById(R.id.dialog_rb_spend);
+        //String checked= rb.getText().toString();
 
+        //라디오버튼으로 배열 가져오기 => 안됨
+        if(rb1.isChecked()) {
+            adapter = ArrayAdapter.createFromResource(this,
+                    R.array.UISpinner,//배열 가져온다
+                    android.R.layout.simple_spinner_item);
+            //etAddCategory.setAdapter(adapter);
+            Toast.makeText(getApplicationContext(),rb1.getText().toString(),Toast.LENGTH_SHORT).show();
+        }
+        else if(rb2.isChecked()) {
+                adapter = ArrayAdapter.createFromResource(this,
+                        R.array.USSpinner,//배열 가져온다
+                        android.R.layout.simple_spinner_item);
+                //etAddCategory.setAdapter(adapter);
+            Toast.makeText(getApplicationContext(),rb2.toString(),Toast.LENGTH_SHORT).show();
+        }
 
 
         //모델이 없다면, 즉 새로운 데이터를 입력한다면
         //버튼을 눌렀을 때 이 함수에 null,-l을 매개변수로 주는것을 볼 수 있다. null을 준 의미가 새로운 데이터를 생성하기 위함임
         //뷰를 띄우고 기다림
         if (model != null) {
-            etAddCategory.setAdapter(adapter);//스피너와 연결!!
+            etAddCategory.setText(String.valueOf(model.getName()));//스피너와 연결!!
             etAddIncome.setText(String.valueOf(model.getPrice()));
+
         }
         mainDialog.setCancelable(false)//back키 설정 안함
                 .setPositiveButton("Ok", null)//ok버튼 설정
@@ -424,18 +452,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //입력칸이 비어있는지 확인하고 다 채워졌다면 데이터를 추가 or업데이트, 빈 칸이 있다면 채우라는 다이얼로그띄움
                 // if (!Utility.isBlankField(etAddCategory) && !Utility.isBlankField(etAddIncome)) {
                 if (!Utility.isBlankField(etAddIncome)) {
-                    String selItem = (String)etAddCategory.getSelectedItem();
-                    DataDetailsModel dataDetailsModel = new DataDetailsModel();
-                    dataDetailsModel.setName(selItem);
-                    dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
-                    dataDetailsModel.setDate(transFormat.format(new Date())); //date추가
+                    if(rb1.isChecked()) {
+                        //String selItem = (String) etAddCategory.getSelectedItem();
+                        DataDetailsModel dataDetailsModel = new DataDetailsModel();
+                        dataDetailsModel.setName(etAddCategory.getText().toString());
+                        dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
+                        dataDetailsModel.setDate(transFormat.format(new Date())); //date추가
 
-                    Log.d("ee",dataDetailsModel.getDate().toString());
-                    if (model == null)//데이터베이스를 새로 생성하겠다!!
-                        addDataToRealm(dataDetailsModel);
-                    else//기존에 있던 데이터를 업데이트하겠다!!
-                        updatePersonDetails(dataDetailsModel, position, model.getId());
-                    dialog.cancel();
+                        Log.d("ee", dataDetailsModel.getDate().toString());
+
+                        if (model == null)//데이터베이스를 새로 생성하겠다!!
+                            addDataToRealm(dataDetailsModel);
+                        else//기존에 있던 데이터를 업데이트하겠다!!
+                            updatePersonDetails(dataDetailsModel, position, model.getId());
+                        dialog.cancel();
+                    }
+                    else if(rb2.isChecked()){
+                        //String selItem = (String) etAddCategory.getSelectedItem();
+                        DataDetailsModel dataDetailsModel = new DataDetailsModel();
+                        dataDetailsModel.setName(etAddCategory.getText().toString());
+                        dataDetailsModel.setPrice(Integer.parseInt(etAddIncome.getText().toString()));
+                        dataDetailsModel.setDate(transFormat.format(new Date())); //date추가
+                        dataDetailsModel.setInOrOut(true); //지출
+
+
+                        dataDetailsAdapter.notifyDataSetChanged();
+
+                        Log.d("eeeeeeeeeeeeeeeeeeee", dataDetailsModel.getDate().toString());
+
+                        if (model == null){//데이터베이스를 새로 생성하겠다!!
+                            addDataToRealm2(dataDetailsModel);
+                        }
+                        else//기존에 있던 데이터를 업데이트하겠다!!
+                            updatePersonDetails(dataDetailsModel, position, model.getId());
+                        dialog.cancel();
+                    }
                 } else {//다이얼 로그가 비워져 있다면 이것을 보여줘!!
                     subDialog.show();
                 }
@@ -446,11 +497,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void addDataToRealm(DataDetailsModel model) {
         Log.e(LOG_TAG, "DataList.addDataToRealm");
 
-
         myRealm.beginTransaction();
 
         DataDetailsModel dataDetailsModel = myRealm.createObject(DataDetailsModel.class);
-        dataDetailsModel.setId(id); //id+남아있는리스트개수를 해줘야해
+        dataDetailsModel.setId(id+dataDetailsModelArrayList.size()); //id+남아있는리스트개수를 해줘야해
         dataDetailsModel.setName(model.getName());
         dataDetailsModel.setPrice(model.getPrice());
         dataDetailsModel.setDate(model.getDate());
@@ -459,6 +509,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myRealm.commitTransaction();
         dataDetailsAdapter.notifyDataSetChanged();
         id++;
+    }
+    private void addDataToRealm2(DataDetailsModel model) {
+        Log.e(LOG_TAG, "DataList.addDataToRealm2");
+
+        myRealm.beginTransaction();
+
+        DataDetailsModel dataDetailsModel2 = myRealm.createObject(DataDetailsModel.class);
+        dataDetailsModel2.setId(id+dataDetailsModelArrayList.size()); //id+남아있는리스트개수를 해줘야해
+        dataDetailsModel2.setName(model.getName());
+        dataDetailsModel2.setPrice(model.getPrice());
+        dataDetailsModel2.setDate(model.getDate());
+        dataDetailsModel2.setInOrOut(true); //수입
+        dataDetailsModelArrayList.add(dataDetailsModel2);
+        myRealm.commitTransaction();
+        dataDetailsAdapter.notifyDataSetChanged();
+        id++;
+
+
     }
     //데이터 업데이트 함(수정)
     public void updatePersonDetails(DataDetailsModel model,int position,int personID) {
