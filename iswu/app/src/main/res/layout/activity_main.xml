@@ -6,13 +6,23 @@
     android:layout_height="match_parent"
     tools:context="com.example.leeyerin.iswu.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/subwayBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="서브웨이"/>
+
+        <Button
+            android:id="@+id/locationBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="로케이션"/>
+
+    </LinearLayout>
+
 
 </android.support.constraint.ConstraintLayout>
