@@ -1,5 +1,8 @@
 package com.example.leeyerin.iswu;
 
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.RemoteException;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +28,8 @@ public class MainActivity extends AppCompatActivity
     private Button subwayBtn;
     private Button locationBtn;
 
+    private BluetoothAdapter mBluetoothAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +41,22 @@ public class MainActivity extends AppCompatActivity
         locationBtn = (Button)findViewById(R.id.locationBtn);
         locationBtn.setOnClickListener(this);
 
+        // 블루트스 권한 승인 요청
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        // 블루트스가 지원되는 기기
+        if(mBluetoothAdapter != null)
+        {
+            // 블루트스가 꺼져있을때
+            if(!mBluetoothAdapter.isEnabled()) {
+            Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBTIntent, 1);
+            }else {
+
+            }
+        }else {
+            finish();
+        }
 
 
 
